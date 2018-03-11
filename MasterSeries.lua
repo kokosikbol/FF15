@@ -1,10 +1,11 @@
---last update: added blitz, improve minion collision, added menulib, added more functions
+--last update: added syndra
 
 require 'GeometryLib'
 require 'FF15menu'
 Annie = {}
 Brand = {}
 Blitzcrank = {}
+Syndra = {}
 Orbwalk = {}
 Prediction = {}
 Utils = {}
@@ -20,6 +21,9 @@ function OnLoad()
 	elseif mh.charName == "Blitzcrank" then
 		Blitzcrank:Init()
 		PrintChat("<b><font color=\"#ff6600\">MasterSeries: </font></b><font color=\"#FFFFFF\"> Blitzcrank Loaded. Welcome :)</font>")
+	elseif mh.charName == "Syndra" then
+		Syndra:Init()
+		PrintChat("<b><font color=\"#ff6600\">MasterSeries: </font></b><font color=\"#FFFFFF\"> Syndra Loaded. Welcome :)</font>")
 	end
 	Orbwalk:Init()
 end
@@ -73,8 +77,8 @@ function Brand:Init()
 		range = 600,
 	}
 	self.Q = {
-		slot = mh.spellbook:Spell(SpellSlot.Q),
-		ready = function() return mh.spellbook:CanUseSpell(0) == 0 end,
+		slot = mh.spellbook:Spell(Q),
+		ready = function() return mh.spellbook:CanUseSpell(Q) == 0 end,
 		range = 1050,
 		pred = {
 			delay = 0.25,
@@ -84,8 +88,8 @@ function Brand:Init()
 		},
 	}
 	self.W = {
-		slot = mh.spellbook:Spell(SpellSlot.W),
-		ready = function() return mh.spellbook:CanUseSpell(1) == 0 end,
+		slot = mh.spellbook:Spell(W),
+		ready = function() return mh.spellbook:CanUseSpell(W) == 0 end,
 		range = 900,
 		pred = {
 			delay = 0.75,
@@ -96,13 +100,13 @@ function Brand:Init()
 		},
 	}
 	self.E = {
-		slot = mh.spellbook:Spell(SpellSlot.E),
-		ready = function() return mh.spellbook:CanUseSpell(2) == 0 end,
+		slot = mh.spellbook:Spell(E),
+		ready = function() return mh.spellbook:CanUseSpell(E) == 0 end,
 		range = 625,
 	}
 	self.R = {
-		slot = mh.spellbook:Spell(SpellSlot.R),
-		ready = function() return mh.spellbook:CanUseSpell(3) == 0 end,
+		slot = mh.spellbook:Spell(R),
+		ready = function() return mh.spellbook:CanUseSpell(R) == 0 end,
 		range = 775,
 	}
 	AddEvent(Events.OnBuffGain, function(unit, buff) self:OnGainBuff(unit, buff) end)
@@ -333,13 +337,13 @@ function Annie:Init()
 		range = 600,
 	}
 	self.Q = {
-		slot = mh.spellbook:Spell(SpellSlot.Q),
-		ready = function() return mh.spellbook:CanUseSpell(0) == 0 end,
+		slot = mh.spellbook:Spell(Q),
+		ready = function() return mh.spellbook:CanUseSpell(Q) == 0 end,
 		range = 650,
 	}
 	self.W = {
-		slot = mh.spellbook:Spell(SpellSlot.W),
-		ready = function() return mh.spellbook:CanUseSpell(1) == 0 end,
+		slot = mh.spellbook:Spell(W),
+		ready = function() return mh.spellbook:CanUseSpell(W) == 0 end,
 		range = 650,
 		pred = {
 			delay = 0.6,
@@ -350,8 +354,8 @@ function Annie:Init()
 			},
 	}
 	self.R = {
-		slot = mh.spellbook:Spell(SpellSlot.R),
-		ready = function() return mh.spellbook:CanUseSpell(3) == 0 end,
+		slot = mh.spellbook:Spell(R),
+		ready = function() return mh.spellbook:CanUseSpell(R) == 0 end,
 		range = 575,
 		pred = {
 			delay = 0.25,
@@ -547,8 +551,8 @@ function Blitzcrank:Init()
 		range = 600,
 	}
 	self.Q = {
-		slot = mh.spellbook:Spell(SpellSlot.Q),
-		ready = function() return mh.spellbook:CanUseSpell(0) == 0 end,
+		slot = mh.spellbook:Spell(Q),
+		ready = function() return mh.spellbook:CanUseSpell(Q) == 0 end,
 		range = 1050,
 		pred = {
 			delay = 0.25,
@@ -559,17 +563,17 @@ function Blitzcrank:Init()
 		},
 	}
 	self.W = {
-		slot = mh.spellbook:Spell(SpellSlot.W),
-		ready = function() return mh.spellbook:CanUseSpell(1) == 0 end,
+		slot = mh.spellbook:Spell(W),
+		ready = function() return mh.spellbook:CanUseSpell(W) == 0 end,
 	}
 	self.E = {
-		slot = mh.spellbook:Spell(SpellSlot.E),
-		ready = function() return mh.spellbook:CanUseSpell(2) == 0 end,
+		slot = mh.spellbook:Spell(E),
+		ready = function() return mh.spellbook:CanUseSpell(E) == 0 end,
 		range = mh.characterIntermediate.attackRange+150,
 	}
 	self.R = {
-		slot = mh.spellbook:Spell(SpellSlot.R),
-		ready = function() return mh.spellbook:CanUseSpell(3) == 0 end,
+		slot = mh.spellbook:Spell(R),
+		ready = function() return mh.spellbook:CanUseSpell(R) == 0 end,
 		range = 600,
 	}
 	AddEvent(Events.OnBuffGain, function(unit, buff) self:OnGainBuff(unit, buff) end)
@@ -711,6 +715,407 @@ end
 
 
 ---------------------------------
+----------- SYNDRA --------------
+---------------------------------
+---------------------------------
+function Syndra:Menu()
+	menu = Menu("MasterSeries", "MasterSeries-Syndra")
+	menu:sub("combosettings", "Combo Settings")
+	menu:sub("harasssettings", "Harass Settings")
+	menu:sub("clearsettings", "Clear Settings")
+	menu:sub("killstealsettings", "KillSteal Settings")
+	menu:sub("drawsettings", "Draw Settings")
+	-------------
+	menu.combosettings:checkbox("useq", "Use (Q)", true)
+	menu.combosettings:checkbox("usew", "Use (W)", true)
+	menu.combosettings:checkbox("usee", "Use (E)", true)
+	menu.combosettings:checkbox("user", "Use (R)", true)
+	menu.combosettings:key("combokey", "Combo Key:", 32)
+	-------------
+	menu.harasssettings:checkbox("useq", "Use (Q)", true)
+	menu.harasssettings:checkbox("usew", "Use (W)", true)
+	menu.harasssettings:checkbox("usee", "Use (E)", true)
+	menu.harasssettings:key("harasskey", "Harass Key:", 67)
+	------------
+	menu.clearsettings:checkbox("useq", "Use (Q)", true)
+	menu.clearsettings:checkbox("usew", "Use (W)", true)
+	menu.clearsettings:checkbox("usee", "Use (E)", true)
+	menu.clearsettings:key("clearkey", "Clear Key:", 86)
+	-------------
+	menu.killstealsettings:checkbox("useq", "Use (Q)", true)
+	menu.killstealsettings:checkbox("usew", "Use (W)", true)
+	menu.killstealsettings:checkbox("user", "Use (R)", true)
+	menu.killstealsettings:checkbox("usei", "Use Ignite", true)
+	-------------
+	menu.drawsettings:checkbox("drawq", "Draw (Q) Circle", true)
+	menu.drawsettings:checkbox("draww", "Draw (W) Circle", true)
+	menu.drawsettings:checkbox("drawe", "Draw (E) Circle", true)
+	menu.drawsettings:checkbox("drawr", "Draw (R) Circle", true)
+end
+
+function Syndra:Init()
+	self.Pets = {"annietibbers", "shacobox", "malzaharvoidling", "heimertyellow", "heimertblue", "yorickdecayedghoul"}
+	self.Balls = {}
+	self.eHitTimer = 0
+	self.qcasted, self.wcasted, self.ecasted = false, false, false
+	self.target, self.tsrange = nil, 1200
+	self.I = {
+		slot = mh.spellbook:Spell(4).name:find("SummonerDot") and 4 or mh.spellbook:Spell(5).name:find("SummonerDot") and 5 or nil,
+		ready = function() return self.I.slot and mh.spellbook:CanUseSpell(self.I.slot) == 0  or false end,
+		range = 600,
+	}
+	self.Q = {
+		slot = mh.spellbook:Spell(Q),
+		ready = function() return mh.spellbook:CanUseSpell(Q) == 0 end,
+		range = 800,
+		pred = {
+			delay = 0.6,
+			width = 170,
+			speed = math.huge,
+			collision = false,
+		},
+	}
+	self.W = {
+		slot = mh.spellbook:Spell(W),
+		ready = function() return mh.spellbook:CanUseSpell(W) == 0 end,
+		range = 950,
+		pred = {
+			delay = 0.25,
+			radius = 210,
+			speed = 1450,
+			collision = false,
+		},
+	}
+	self.E = {
+		slot = mh.spellbook:Spell(E),
+		ready = function() return mh.spellbook:CanUseSpell(E) == 0 end,
+		range = 700,
+		pred = {
+			delay = 0.3,
+			radius = 45,
+			speed = 1600,
+			collision = false,
+		},
+	}
+	self.R = {
+		slot = mh.spellbook:Spell(R),
+		ready = function() return mh.spellbook:CanUseSpell(R) == 0 end,
+		range = 675,
+	}
+	AddEvent(Events.OnProcessSpell, function(unit, spell) self:OnProcessSpell(unit, spell) end)
+	AddEvent(Events.OnTick, function() self:OnTick() end)
+	AddEvent(Events.OnDraw, function() self:OnDraw() end)
+	self:Menu()
+end
+
+function Syndra:OnTick()
+	if self.Q.ready() and self.E.ready() then
+		self.tsrange = 1300
+	elseif self.Q.ready() and not self.E.ready() then
+		self.tsrange = self.Q.range
+	elseif not self.Q.ready() and self.W.ready() then
+		self.tsrange = self.W.range
+	elseif not self.W.ready() and self.R.ready() then
+		self.tsrange = self.R.range
+	elseif not self.R.ready() and self.E.ready() then
+		self.tsrange = self.E.range
+	end
+	self.target = Utils:GetTarget(self.tsrange)
+	if menu.combosettings.combokey:get() then 
+		Orbwalk:Orbwalk()
+		self:Combo()
+	end
+	if menu.harasssettings.harasskey:get() then 
+		Orbwalk:Orbwalk()
+		self:Harass()
+	end
+	if menu.clearsettings.clearkey:get() then 
+		Orbwalk:Orbwalk()
+		self:Clear()
+	end
+	self:KillSteal()
+	self:DeleteOldBalls()
+	if self.qcasted and not self.Q.ready() then
+		self.qcasted = false
+	end
+	if self.wcasted and not self.W.ready() then
+		self.wcasted = false
+	end
+	if self.ecasted and not self.E.ready() then
+		self.ecasted = false
+	end
+end
+
+function Syndra:Combo()
+	if not Utils:ValidTarget(self.target) then return end
+	if menu.combosettings.useq:get() and menu.combosettings.usee:get() then
+		self:QECast(self.target)
+	end
+	if menu.combosettings.useq:get() and self.Q.ready() then
+		self:CastQ(self.target)
+	end
+	if menu.combosettings.usew:get() and self.W.ready() and self:CanGrabOrb() then
+		self:CastW(self.target)
+	end
+	if menu.combosettings.usee:get() and self.E.ready() then
+		self:CastE(self.target)
+	end
+	if menu.combosettings.user:get() and self.R.ready() then
+		local dmg = math.floor(Utils:GetDmg(self.target, "Q")) + math.floor(Utils:GetDmg(self.target, "W")) + math.floor(Utils:GetDmg(self.target, "E")) + math.floor(Utils:GetDmg(self.target, "R"))
+		if self.target.health < dmg then
+			self:CastR(self.target)
+		end
+	end
+end
+
+function Syndra:Harass()
+	if not Utils:ValidTarget(self.target) then return end
+	if menu.harasssettings.useq:get() and menu.harasssettings.usee:get() then
+		self:QECast(self.target)
+	end
+	if menu.harasssettings.useq:get() and self.Q.ready() then
+		self:CastQ(self.target)
+	end
+	if menu.harasssettings.usew:get() and self.W.ready() then
+		self:CastW(self.target)
+	end
+	if menu.harasssettings.usee:get() and self.E.ready() then
+		self:CastE(self.target)
+	end
+end
+
+function Syndra:Clear()
+	for i, minion in pairs(ObjectManager:GetEnemyMinions()) do
+		if Utils:ValidTarget(minion, 1300) then
+			if menu.clearsettings.useq:get() and Utils:GetDistance(minion, mh) <= self.Q.range then
+				self:CastQ(minion)
+			end
+			if menu.clearsettings.usew:get() and Utils:GetDistance(minion, mh) <= self.W.range then
+				local Pos, Hit = Utils:GetBestCircleFarmPosition(self.W.range, self.W.pred.radius, ObjectManager:GetEnemyMinions())
+				if Pos and Hit >= 3 and Utils:GetDistance(Pos) < self.W.range then 
+					mh.spellbook:CastSpell(1, D3DXVECTOR3(Pos.x, Pos.y, Pos.z))	
+				end
+			end
+			if menu.clearsettings.usee:get() and Utils:GetDistance(minion, mh) <= self.E.range then
+				self:CastE(minion)
+			end
+		end
+	end
+end
+
+function Syndra:KillSteal()
+	for k, enemy in pairs(ObjectManager:GetEnemyHeroes()) do
+		if Utils:ValidTarget(enemy) and Utils:GetDistance(enemy, mh) < self.Q.range then
+			local qdmg = Utils:GetDmg(enemy, "Q")
+			local wdmg = Utils:GetDmg(enemy, "W")
+			local rdmg = Utils:GetDmg(enemy, "R")
+			local idmg = Utils:GetDmg(enemy, "Ignite")
+			if menu.killstealsettings.useq:get() and self.Q.ready() and enemy.health < qdmg then
+				self:CastQ(enemy)
+			elseif menu.killstealsettings.usew:get() and self.W.ready() and enemy.health < wdmg then
+				self:CastW(enemy)
+			elseif menu.killstealsettings.user:get() and self.R.ready() and enemy.health < rdmg then
+				self:CastR(enemy)
+			elseif menu.killstealsettings.usei:get() and self.I.ready() and enemy.health < idmg then
+				mh.spellbook:CastSpell(self.I.slot, enemy.networkId)	
+			end
+		end
+	end
+end
+
+function Syndra:CastQ(unit)
+	if Utils:ValidTarget(unit) and Utils:GetDistance(mh, unit) <= self.Q.range then
+		local x, y = Prediction:prediction(unit, self.Q.pred.delay, self.Q.pred.speed, self.Q.range, self.Q.pred.width, self.Q.pred.collision)
+		if x and y >= 2 then
+			mh.spellbook:CastSpell(0, D3DXVECTOR3(x.x, x.y, x.z))			
+		end
+	end
+end
+
+function Syndra:CastW(unit)
+	if Utils:ValidTarget(unit) and Utils:GetDistance(mh, unit) <= self.W.range then	
+		if mh.spellbook:Spell(SpellSlot.W).name == "SyndraW" then
+			local orbb = self:GetOrb()
+			local pet = self:GetPet()
+			if orbb and self:CanGrabOrb() then
+				mh.spellbook:CastSpell(1, D3DXVECTOR3(orbb.x, orbb.y, orbb.z))	
+			elseif pet then
+				mh.spellbook:CastSpell(1, D3DXVECTOR3(pet.x, pet.y, pet.z))	
+			elseif not pet and not orbb then
+				local minion = Utils:GetMinion(925)
+				if minion and Utils:ValidTarget(minion, 925) and Utils:GetDistance(minion) <= 925 then
+					mh.spellbook:CastSpell(1, D3DXVECTOR3(minion.x, myHero.position.y, minion.z))	
+				end
+			end
+		else
+			local x, y = Prediction:prediction(unit, self.W.pred.delay, self.W.pred.speed, self.W.range, self.W.pred.radius, self.W.pred.collision)
+			if x and y >= 2 then
+				mh.spellbook:CastSpell(1, D3DXVECTOR3(x.x, x.y, x.z))			
+			end	
+		end	
+	end
+end
+
+function Syndra:CastE(unit)
+	if Utils:ValidTarget(unit) then		
+		local StunBall = self:GetStunBall(mh, unit)
+		if StunBall and Utils:GetDistance(StunBall) < self.E.range then
+			mh.spellbook:CastSpell(2, D3DXVECTOR3(StunBall.x, unit.position.y, StunBall.z))
+		end
+	end
+end
+
+function Syndra:CastR(unit)
+	if Utils:ValidTarget(unit) and Utils:GetDistance(mh, unit) <= self.R.range then
+		mh.spellbook:CastSpell(3, unit.networkId)				
+	end
+end
+
+function Syndra:QECast(unit)
+	if mh.spellbook:Spell(SpellSlot.W).name == "SyndraWCast" and mh.mana > 100 then--mh.spellbook:Spell(SpellSlot.W).mana + mh.spellbook:Spell(SpellSlot.E).mana then
+		local Position, y = Prediction:prediction(unit, 0.5, 1600, 1300, 100, false)
+		if Position and self.E.ready() then
+			if Utils:GetDistance(unit) < self.W.range then
+				mh.spellbook:CastSpell(1, D3DXVECTOR3(Position.x, Position.y, Position.z))
+				if self.wcasted then
+					mh.spellbook:CastSpell(2, D3DXVECTOR3(Position.x, Position.y, Position.z))
+				end
+			else
+				local pos = mh.position + 930 * (Vector(Position) - Vector(mh.position)):normalized()
+				mh.spellbook:CastSpell(1, D3DXVECTOR3(pos.x, pos.y, pos.z))
+				if self.wcasted then
+					mh.spellbook:CastSpell(2, D3DXVECTOR3(pos.x, pos.y, pos.z))
+				end
+			end
+		end
+	elseif mh.spellbook:Spell(SpellSlot.W).name == "SyndraW" and mh.mana > 100 then--mh.spellbook:Spell(SpellSlot.Q).mana + mh.spellbook:Spell(SpellSlot.E).mana then
+		if self.Q.ready() then
+			local Position, y = Prediction:prediction(unit, 0.5, 1600, 1300, 100, false)
+			if Position and self.E.ready() then
+				if Utils:GetDistance(unit) < self.Q.range then
+					mh.spellbook:CastSpell(0, D3DXVECTOR3(Position.x, Position.y, Position.z))
+					mh.spellbook:CastSpell(2, D3DXVECTOR3(Position.x, Position.y, Position.z))
+				else
+					local pos = mh.position + 780 * (Vector(Position) - Vector(mh.position)):normalized()
+					mh.spellbook:CastSpell(0, D3DXVECTOR3(pos.x, pos.y, pos.z))
+					mh.spellbook:CastSpell(2, D3DXVECTOR3(pos.x, pos.y, pos.z))
+				end
+			end
+		end
+	end
+end
+
+function Syndra:OnDraw()
+	if menu.drawsettings.drawq:get() and self.Q.ready() then
+		DrawHandler:Circle3D(myHero.position, self.Q.range, 0xff00ff00)
+	end
+	if menu.drawsettings.draww:get() and self.W.ready() then
+		DrawHandler:Circle3D(myHero.position, self.W.range, 0xff00ff00)
+	end
+	if menu.drawsettings.drawe:get() and self.E.ready() then
+		DrawHandler:Circle3D(myHero.position, self.E.range, 0xff00ff00)
+	end
+	if menu.drawsettings.drawr:get() and self.R.ready() then
+		DrawHandler:Circle3D(myHero.position, self.R.range, 0xff00ff00)
+	end
+end
+
+function Syndra:OnProcessSpell(unit, spell)
+	if unit and spell and unit == mh then
+		if spell.spellData.name == "SyndraQ" then
+			self.qcasted = true
+		elseif spell.spellData.name == "SyndraW" then
+			self.wcasted = true
+		elseif spell.spellData.name == "SyndraE" then
+			self.ecasted = true
+			self.eHitTimer = RiotClock.time + 1
+		end
+	end
+	if unit and spell and unit == mh and spell.spellData.name == "SyndraQ" then
+		self.Balls[#self.Balls + 1] = {
+			Object = {valid = true, x = spell.endPos.x, y = mh.y, z = spell.endPos.z},
+			InUse = false,
+			Timer = RiotClock.time + 6,
+			EndT = os.clock() + 6.9 + 0.6 - NetClient.ping/2000
+		}
+	end
+end
+
+function Syndra:DeleteOldBalls()
+	if #self.Balls == 0 then return end
+	for i = #self.Balls, 1, -1 do
+		if self.Balls[i].EndT <= os.clock() then
+			table.remove(self.Balls, i)
+		end
+	end
+end
+
+function Syndra:OrbCount()
+	local count = 0
+	for i, o in pairs(self.Balls) do
+		count = count + 1
+	end
+	return count
+end
+
+function Syndra:GetOrb()
+	local orb
+	if self:OrbCount() == 0 then
+		return orb
+	end
+	local orbt1 = 0
+	for i, kul in pairs(self.Balls) do
+		if not kul.InUse and Utils:GetDistance(kul.Object) <= 925 then
+			local obrti = kul.Timer
+			if orbt1 == 0 then
+				orb = kul.Object
+				orbt1 = obrti
+			elseif obrti < orbt1 then
+				orb = kul.Object
+				orbt1 = obrti
+			end
+		end
+	end
+	return orb
+end
+
+function Syndra:CanGrabOrb()
+	if self.eHitTimer > 0 and RiotClock.time > self.eHitTimer or self.eHitTimer == 0 then
+		self.eHitTimer = 0
+		return true
+	else
+		return false
+	end
+end
+
+function Syndra:GetStunBall(pStart, pEnd)
+	for i, kula in pairs(self.Balls) do
+		if kula.Object and Utils:GetDistance(kula.Object, mh) < self.E.range then
+			local pointSegment, pointLine, isOnSegment = VectorPointProjectionOnLineSegment(Utils:Convert(pStart), Utils:Convert(pEnd), kula.Object)
+			if isOnSegment then
+				local x = {['x'] = pointSegment.x, ['y'] = mh.position.y, ['z'] = pointSegment.y}
+				if Utils:GetDistance(x, kula.Object) < 100 then
+					return kula.Object
+				end
+			end
+			
+		end
+    end
+end
+
+function Syndra:GetPet()
+	for i, object in ipairs(ObjectManager:GetEnemyMinions()) do
+		if object and object.valid and object.team ~= mh.team and self:CheckPetName(object.charName) then
+			return object
+		end
+	end
+end
+
+function Syndra:CheckPetName(name) 
+	return table.contains(self.Pets, name:lower())
+end
+
+---------------------------------
 ---------------------------------
 ----------- UTILS ---------------
 ---------------------------------
@@ -751,6 +1156,24 @@ function Utils:GetDmg(unit, spell)
 			return self:CalcPhysic(unit, mh.characterIntermediate.flatPhysicalDamageMod + mh.characterIntermediate.baseAttackDamage) or 0
 		elseif spell == "R" and Blitzcrank.R.ready() then
 			return self:CalcMagic(unit, (125 * mh.spellbook:Spell(R).level + 125) + (mh.characterIntermediate.baseAbilityDamage)) or 0
+		end
+	elseif mh.charName == "Syndra" then
+		if spell == "Q" and Syndra.Q.ready() then
+			if mh.spellbook:Spell(Q).level > 0 and mh.spellbook:Spell(Q).level < 5 then
+				return self:CalcMagic(unit, (45 * mh.spellbook:Spell(Q).level + 5) + (mh.characterIntermediate.baseAbilityDamage * 0.65)) or 0
+			elseif mh:GetSpellData(_Q).level == 5 then
+				local dd = (45 * mh.spellbook:Spell(Q).level + 5) + (mh.characterIntermediate.baseAbilityDamage * 0.65) * 0.15
+				local dd2 = (45 * mh.spellbook:Spell(Q).level + 5) + (mh.characterIntermediate.baseAbilityDamage * 0.65) + dd
+				return self:CalcMagic(unit, dd2) or 0
+			end
+		elseif spell == "W" and Syndra.W.ready() then
+			return self:CalcMagic(unit, (40 * mh.spellbook:Spell(W).level + 30) + (mh.characterIntermediate.baseAbilityDamage * 0.7)) or 0
+		elseif spell == "E" and Syndra.E.ready() then
+			return self:CalcMagic(unit, (45 * mh.spellbook:Spell(E).level + 25) + (mh.characterIntermediate.baseAbilityDamage * 0.6)) or 0
+		elseif spell == "R" and Syndra.R.ready() then
+			local dm = math.floor((45 * mh.spellbook:Spell(R).level + 45 + (mh.characterIntermediate.baseAbilityDamage * 0.2)) * Syndra:OrbCount()+3)
+			local dm2 = math.floor(135 * mh.spellbook:Spell(R).level + 135 + (mh.characterIntermediate.baseAbilityDamage * 0.6) + dm)
+			return self:CalcMagic(unit, dm2) or 0
 		end
 	end
 end
@@ -858,6 +1281,28 @@ function Utils:Convert(pos)
 	return x
 end
 
+delayedActions = {}
+function Utils:DelayAction(func, delay, args)
+    if not delayedActionsExecuter then
+            function delayedActionsExecuter()
+                    for i, funcs in pairs(delayedActions) do
+                            if i <= RiotClock.time then
+                                    for _, f in ipairs(funcs) do
+                                            f.func(unpack(f.args or {}))
+                                    end
+                                    delayedActions[i] = nil
+                            end
+                    end
+            end
+            AddEvent(Events.OnTick , delayedActionsExecuter)
+    end
+    local time = RiotClock.time + (delay or 0)
+    if delayedActions[time] then
+            table.insert(delayedActions[time], { func = func, args = args })
+    else
+            delayedActions[time] = { { func = func, args = args } }
+    end
+end
 ---------------------------------
 ---------------------------------
 ------- ORBWALKER ---------------
