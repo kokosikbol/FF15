@@ -1,4 +1,4 @@
---last update: added syndra
+--last update: syndra few fix
 
 require 'GeometryLib'
 require 'FF15menu'
@@ -854,7 +854,7 @@ function Syndra:Combo()
 	if menu.combosettings.useq:get() and self.Q.ready() then
 		self:CastQ(self.target)
 	end
-	if menu.combosettings.usew:get() and self.W.ready() and self:CanGrabOrb() then
+	if menu.combosettings.usew:get() and self.W.ready() then
 		self:CastW(self.target)
 	end
 	if menu.combosettings.usee:get() and self.E.ready() then
@@ -934,7 +934,7 @@ end
 
 function Syndra:CastW(unit)
 	if Utils:ValidTarget(unit) and Utils:GetDistance(mh, unit) <= self.W.range then	
-		if mh.spellbook:Spell(SpellSlot.W).name == "SyndraW" then
+		if mh.spellbook:Spell(W).toggleState == 1 then
 			local orbb = self:GetOrb()
 			local pet = self:GetPet()
 			if orbb and self:CanGrabOrb() then
@@ -944,10 +944,11 @@ function Syndra:CastW(unit)
 			elseif not pet and not orbb then
 				local minion = Utils:GetMinion(925)
 				if minion and Utils:ValidTarget(minion, 925) and Utils:GetDistance(minion) <= 925 then
-					mh.spellbook:CastSpell(1, D3DXVECTOR3(minion.x, myHero.position.y, minion.z))	
+					mh.spellbook:CastSpell(1, D3DXVECTOR3(minion.position.x, minion.position.y, minion.position.z))	
 				end
 			end
-		else
+		end
+		if mh.spellbook:Spell(W).toggleState == 2 then
 			local x, y = Prediction:prediction(unit, self.W.pred.delay, self.W.pred.speed, self.W.range, self.W.pred.radius, self.W.pred.collision)
 			if x and y >= 2 then
 				mh.spellbook:CastSpell(1, D3DXVECTOR3(x.x, x.y, x.z))			
@@ -972,7 +973,7 @@ function Syndra:CastR(unit)
 end
 
 function Syndra:QECast(unit)
-	if mh.spellbook:Spell(SpellSlot.W).name == "SyndraWCast" and mh.mana > 100 then--mh.spellbook:Spell(SpellSlot.W).mana + mh.spellbook:Spell(SpellSlot.E).mana then
+	if mh.spellbook:Spell(W).name == "SyndraWCast" and mh.mana > mh.spellbook:Spell(W).spellData.spellDataInfo.mana + mh.spellbook:Spell(E).spellData.spellDataInfo.mana then
 		local Position, y = Prediction:prediction(unit, 0.5, 1600, 1300, 100, false)
 		if Position and self.E.ready() then
 			if Utils:GetDistance(unit) < self.W.range then
@@ -988,7 +989,7 @@ function Syndra:QECast(unit)
 				end
 			end
 		end
-	elseif mh.spellbook:Spell(SpellSlot.W).name == "SyndraW" and mh.mana > 100 then--mh.spellbook:Spell(SpellSlot.Q).mana + mh.spellbook:Spell(SpellSlot.E).mana then
+	elseif mh.spellbook:Spell(W).name == "SyndraW" and mh.mana > mh.spellbook:Spell(Q).spellData.spellDataInfo.mana + mh.spellbook:Spell(E).spellData.spellDataInfo.mana then
 		if self.Q.ready() then
 			local Position, y = Prediction:prediction(unit, 0.5, 1600, 1300, 100, false)
 			if Position and self.E.ready() then
@@ -1028,12 +1029,12 @@ function Syndra:OnProcessSpell(unit, spell)
 			self.wcasted = true
 		elseif spell.spellData.name == "SyndraE" then
 			self.ecasted = true
-			self.eHitTimer = RiotClock.time + 1
+			self.eHitTimer = RiotClock.time + 0.5
 		end
 	end
 	if unit and spell and unit == mh and spell.spellData.name == "SyndraQ" then
 		self.Balls[#self.Balls + 1] = {
-			Object = {valid = true, x = spell.endPos.x, y = mh.y, z = spell.endPos.z},
+			Object = {valid = true, x = spell.endPos.x, y = mh.position.y, z = spell.endPos.z},
 			InUse = false,
 			Timer = RiotClock.time + 6,
 			EndT = os.clock() + 6.9 + 0.6 - NetClient.ping/2000
