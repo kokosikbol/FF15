@@ -1,4 +1,4 @@
---last update: syndra few fix
+--last update: added lux, few tweaks
 
 require 'GeometryLib'
 require 'FF15menu'
@@ -6,6 +6,7 @@ Annie = {}
 Brand = {}
 Blitzcrank = {}
 Syndra = {}
+Lux = {}
 Orbwalk = {}
 Prediction = {}
 Utils = {}
@@ -24,6 +25,9 @@ function OnLoad()
 	elseif mh.charName == "Syndra" then
 		Syndra:Init()
 		PrintChat("<b><font color=\"#ff6600\">MasterSeries: </font></b><font color=\"#FFFFFF\"> Syndra Loaded. Welcome :)</font>")
+	elseif mh.charName == "Lux" then
+		Lux:Init()
+		PrintChat("<b><font color=\"#ff6600\">MasterSeries: </font></b><font color=\"#FFFFFF\"> Lux Loaded. Welcome :)</font>")
 	end
 	Orbwalk:Init()
 end
@@ -78,7 +82,7 @@ function Brand:Init()
 	}
 	self.Q = {
 		slot = mh.spellbook:Spell(Q),
-		ready = function() return mh.spellbook:CanUseSpell(Q) == 0 end,
+		ready = function() return mh.spellbook:CanUseSpell(0) == 0 end,
 		range = 1050,
 		pred = {
 			delay = 0.25,
@@ -89,7 +93,7 @@ function Brand:Init()
 	}
 	self.W = {
 		slot = mh.spellbook:Spell(W),
-		ready = function() return mh.spellbook:CanUseSpell(W) == 0 end,
+		ready = function() return mh.spellbook:CanUseSpell(1) == 0 end,
 		range = 900,
 		pred = {
 			delay = 0.75,
@@ -101,12 +105,12 @@ function Brand:Init()
 	}
 	self.E = {
 		slot = mh.spellbook:Spell(E),
-		ready = function() return mh.spellbook:CanUseSpell(E) == 0 end,
+		ready = function() return mh.spellbook:CanUseSpell(2) == 0 end,
 		range = 625,
 	}
 	self.R = {
 		slot = mh.spellbook:Spell(R),
-		ready = function() return mh.spellbook:CanUseSpell(R) == 0 end,
+		ready = function() return mh.spellbook:CanUseSpell(3) == 0 end,
 		range = 775,
 	}
 	AddEvent(Events.OnBuffGain, function(unit, buff) self:OnGainBuff(unit, buff) end)
@@ -218,7 +222,7 @@ function Brand:KillSteal()
 				self:CastW(enemy)
 			elseif menu.killstealsettings.usee:get() and self.E.ready() and enemy.health < edmg then
 				self:CastE(enemy)
-			elseif menu.killstealsettings.usei:get() and self.I.ready() and enemy.health < idmg then
+			elseif menu.killstealsettings.usei:get() and self.I.ready() and enemy.health < idmg and Utils:GetDistance(enemy, mh) < self.I.range then
 				mh.spellbook:CastSpell(self.I.slot, enemy.networkId)	
 			end
 		end
@@ -338,12 +342,12 @@ function Annie:Init()
 	}
 	self.Q = {
 		slot = mh.spellbook:Spell(Q),
-		ready = function() return mh.spellbook:CanUseSpell(Q) == 0 end,
+		ready = function() return mh.spellbook:CanUseSpell(0) == 0 end,
 		range = 650,
 	}
 	self.W = {
 		slot = mh.spellbook:Spell(W),
-		ready = function() return mh.spellbook:CanUseSpell(W) == 0 end,
+		ready = function() return mh.spellbook:CanUseSpell(1) == 0 end,
 		range = 650,
 		pred = {
 			delay = 0.6,
@@ -355,7 +359,7 @@ function Annie:Init()
 	}
 	self.R = {
 		slot = mh.spellbook:Spell(R),
-		ready = function() return mh.spellbook:CanUseSpell(R) == 0 end,
+		ready = function() return mh.spellbook:CanUseSpell(3) == 0 end,
 		range = 575,
 		pred = {
 			delay = 0.25,
@@ -461,7 +465,7 @@ function Annie:KillSteal()
 				self:CastQ(enemy)
 			elseif menu.killstealsettings.usew:get() and self.W.ready() and enemy.health < wdmg then
 				self:CastW(enemy)
-			elseif menu.killstealsettings.usei:get() and self.I.ready() and enemy.health < idmg then
+			elseif menu.killstealsettings.usei:get() and self.I.ready() and enemy.health < idmg and Utils:GetDistance(enemy, mh) < self.I.range then
 				mh.spellbook:CastSpell(self.I.slot, enemy.networkId)	
 			end
 		end
@@ -552,7 +556,7 @@ function Blitzcrank:Init()
 	}
 	self.Q = {
 		slot = mh.spellbook:Spell(Q),
-		ready = function() return mh.spellbook:CanUseSpell(Q) == 0 end,
+		ready = function() return mh.spellbook:CanUseSpell(0) == 0 end,
 		range = 1050,
 		pred = {
 			delay = 0.25,
@@ -564,16 +568,16 @@ function Blitzcrank:Init()
 	}
 	self.W = {
 		slot = mh.spellbook:Spell(W),
-		ready = function() return mh.spellbook:CanUseSpell(W) == 0 end,
+		ready = function() return mh.spellbook:CanUseSpell(1) == 0 end,
 	}
 	self.E = {
 		slot = mh.spellbook:Spell(E),
-		ready = function() return mh.spellbook:CanUseSpell(E) == 0 end,
+		ready = function() return mh.spellbook:CanUseSpell(2) == 0 end,
 		range = mh.characterIntermediate.attackRange+150,
 	}
 	self.R = {
 		slot = mh.spellbook:Spell(R),
-		ready = function() return mh.spellbook:CanUseSpell(R) == 0 end,
+		ready = function() return mh.spellbook:CanUseSpell(3) == 0 end,
 		range = 600,
 	}
 	AddEvent(Events.OnBuffGain, function(unit, buff) self:OnGainBuff(unit, buff) end)
@@ -669,7 +673,7 @@ function Blitzcrank:KillSteal()
 				self:CastQ(enemy)
 			elseif menu.killstealsettings.user:get() and self.R.ready() and enemy.health < rdmg then
 				self:CastR(enemy)
-			elseif menu.killstealsettings.usei:get() and self.I.ready() and enemy.health < idmg then
+			elseif menu.killstealsettings.usei:get() and self.I.ready() and enemy.health < idmg and Utils:GetDistance(enemy, mh) < self.I.range then
 				mh.spellbook:CastSpell(self.I.slot, enemy.networkId)	
 			end
 		end
@@ -766,7 +770,7 @@ function Syndra:Init()
 	}
 	self.Q = {
 		slot = mh.spellbook:Spell(Q),
-		ready = function() return mh.spellbook:CanUseSpell(Q) == 0 end,
+		ready = function() return mh.spellbook:CanUseSpell(0) == 0 end,
 		range = 800,
 		pred = {
 			delay = 0.6,
@@ -777,7 +781,7 @@ function Syndra:Init()
 	}
 	self.W = {
 		slot = mh.spellbook:Spell(W),
-		ready = function() return mh.spellbook:CanUseSpell(W) == 0 end,
+		ready = function() return mh.spellbook:CanUseSpell(1) == 0 end,
 		range = 950,
 		pred = {
 			delay = 0.25,
@@ -788,7 +792,7 @@ function Syndra:Init()
 	}
 	self.E = {
 		slot = mh.spellbook:Spell(E),
-		ready = function() return mh.spellbook:CanUseSpell(E) == 0 end,
+		ready = function() return mh.spellbook:CanUseSpell(2) == 0 end,
 		range = 700,
 		pred = {
 			delay = 0.3,
@@ -799,7 +803,7 @@ function Syndra:Init()
 	}
 	self.R = {
 		slot = mh.spellbook:Spell(R),
-		ready = function() return mh.spellbook:CanUseSpell(R) == 0 end,
+		ready = function() return mh.spellbook:CanUseSpell(3) == 0 end,
 		range = 675,
 	}
 	AddEvent(Events.OnProcessSpell, function(unit, spell) self:OnProcessSpell(unit, spell) end)
@@ -916,7 +920,7 @@ function Syndra:KillSteal()
 				self:CastW(enemy)
 			elseif menu.killstealsettings.user:get() and self.R.ready() and enemy.health < rdmg then
 				self:CastR(enemy)
-			elseif menu.killstealsettings.usei:get() and self.I.ready() and enemy.health < idmg then
+			elseif menu.killstealsettings.usei:get() and self.I.ready() and enemy.health < idmg and Utils:GetDistance(enemy, mh) < self.I.range then
 				mh.spellbook:CastSpell(self.I.slot, enemy.networkId)	
 			end
 		end
@@ -1116,6 +1120,266 @@ function Syndra:CheckPetName(name)
 	return table.contains(self.Pets, name:lower())
 end
 
+
+---------------------------------
+---------------------------------
+------------ LUX ----------------
+---------------------------------
+---------------------------------
+function Lux:Menu()
+	menu = Menu("MasterSeries", "MasterSeries-Lux")
+	menu:sub("combosettings", "Combo Settings")
+	menu:sub("harasssettings", "Harass Settings")
+	menu:sub("clearsettings", "Clear Settings")
+	menu:sub("killstealsettings", "KillSteal Settings")
+	menu:sub("drawsettings", "Draw Settings")
+	-------------
+	menu.combosettings:checkbox("useq", "Use (Q)", true)
+	menu.combosettings:checkbox("usew", "Use (W)", true)
+	menu.combosettings:checkbox("usee", "Use (E)", true)
+	menu.combosettings:checkbox("user", "Use (R)", true)
+	menu.combosettings:key("combokey", "Combo Key:", 32)
+	-------------
+	menu.harasssettings:checkbox("useq", "Use (Q)", true)
+	menu.harasssettings:checkbox("usee", "Use (E)", true)
+	menu.harasssettings:key("harasskey", "Harass Key:", 67)
+	------------
+	menu.clearsettings:checkbox("useq", "Use (Q)", true)
+	menu.clearsettings:checkbox("usee", "Use (E)", true)
+	menu.clearsettings:key("clearkey", "Clear Key:", 86)
+	-------------
+	menu.killstealsettings:checkbox("useq", "Use (Q)", true)
+	menu.killstealsettings:checkbox("usee", "Use (E)", true)
+	menu.killstealsettings:checkbox("user", "Use (R)", true)
+	menu.killstealsettings:checkbox("usei", "Use Ignite", true)
+	-------------
+	menu.drawsettings:checkbox("drawq", "Draw (Q) Circle", true)
+	menu.drawsettings:checkbox("draww", "Draw (W) Circle", true)
+	menu.drawsettings:checkbox("drawe", "Draw (E) Circle", true)
+	menu.drawsettings:checkbox("drawr", "Draw (R) Circle", true)
+end
+
+function Lux:Init()
+	self.target, self.tsrange, self.eobject = nil, 1250, nil
+	self.I = {
+		slot = mh.spellbook:Spell(4).name:find("SummonerDot") and 4 or mh.spellbook:Spell(5).name:find("SummonerDot") and 5 or nil,
+		ready = function() return self.I.slot and mh.spellbook:CanUseSpell(self.I.slot) == 0  or false end,
+		range = 600,
+	}
+	self.Q = {
+		slot = mh.spellbook:Spell(0),
+		ready = function() return mh.spellbook:CanUseSpell(0) == 0 end,
+		range = 1250,
+		pred = {
+			delay = 0.25,
+			width = 80,
+			speed = 1200,
+			collision = true,
+		},
+	}
+	self.W = {
+		slot = mh.spellbook:Spell(1),
+		ready = function() return mh.spellbook:CanUseSpell(1) == 0 end,
+		range = 850,
+		pred = {
+			delay = 0.25,
+			radius = 150,
+			speed = 1800,
+			boundingRadiusMod = 0,
+			collision = false,
+		},
+	}
+	self.E = {
+		slot = mh.spellbook:Spell(2),
+		ready = function() return mh.spellbook:CanUseSpell(2) == 0 end,
+		range = 1100,
+		pred = {
+			delay = 0.25,
+			radius = 350,
+			speed = 1300,
+			boundingRadiusMod = 0,
+			collision = false,
+		},
+	}
+	self.R = {
+		slot = mh.spellbook:Spell(3),
+		ready = function() return mh.spellbook:CanUseSpell(3) == 0 end,
+		range = 3340,
+		pred = {
+			delay = 1,
+			radius = 160,
+			speed = math.huge,
+			boundingRadiusMod = 0,
+			collision = false,
+		},
+	}
+	AddEvent(Events.OnCreateObject, function(obj) self:OnCreateObject(obj, id) end)
+	AddEvent(Events.OnDeleteObject, function(obj) self:OnDeleteObject(obj) end)
+	AddEvent(Events.OnTick, function() self:OnTick() end)
+	AddEvent(Events.OnDraw, function() self:OnDraw() end)
+	self:Menu()
+end
+
+function Lux:OnTick()
+	if self.Q.ready() then
+		self.tsrange = self.Q.range
+	elseif not self.Q.ready() and self.E.ready() then
+		self.tsrange = self.E.range
+	elseif not self.Q.ready() and not self.E.ready() then
+		self.tsrange = self.W.range
+	end
+	self.target = Utils:GetTarget(self.tsrange)
+	if menu.combosettings.combokey:get() then 
+		Orbwalk:Orbwalk()
+		self:Combo()
+	end
+	if menu.harasssettings.harasskey:get() then 
+		Orbwalk:Orbwalk()
+		self:Harass()
+	end
+	if menu.clearsettings.clearkey:get() then 
+		Orbwalk:Orbwalk()
+		self:Clear()
+	end
+	self:KillSteal()
+end
+
+function Lux:Combo()
+	if not Utils:ValidTarget(self.target) then return end
+	if menu.combosettings.usee:get() and self.E.ready() then
+		self:CastE(self.target)
+	end
+	if menu.combosettings.useq:get() and self.Q.ready() then
+		self:CastQ(self.target)
+	end
+	if menu.combosettings.usew:get() and self.W.ready() then
+		self:CastW()
+	end
+	if menu.combosettings.user:get() and self.R.ready() then
+		local dmg = math.floor(Utils:GetDmg(self.target, "Q")) + math.floor(Utils:GetDmg(self.target, "E")) + math.floor(Utils:GetDmg(self.target, "R"))
+		if self.target.health < dmg then
+			self:CastR(self.target)
+		end
+	end
+	for k, enemy in pairs(ObjectManager:GetEnemyHeroes()) do
+		if Utils:ValidTarget(enemy, 1000) then
+			if self.eobject and Utils:GetDistance(self.eobject, enemy) <= self.E.pred.radius then
+				mh.spellbook:CastSpell(2, mh.networkId)
+			end
+		end
+	end
+end
+
+function Lux:Harass()
+	if not Utils:ValidTarget(self.target) then return end
+	if menu.harasssettings.useq:get() and self.Q.ready() then
+		self:CastQ(self.target)
+	end
+	if menu.harasssettings.usee:get() and self.E.ready() then
+		self:CastE(self.target)
+	end
+end
+
+function Lux:Clear()
+	for i, minion in pairs(ObjectManager:GetEnemyMinions()) do
+		if Utils:ValidTarget(minion, 1250) then
+			if menu.clearsettings.useq:get() and Utils:GetDistance(minion, mh) <= self.Q.range then
+				self:CastQ(minion)
+			end
+			if menu.clearsettings.usee:get() and Utils:GetDistance(minion, mh) <= self.E.range then
+				local Pos, Hit = Utils:GetBestCircleFarmPosition(self.E.range, self.E.pred.radius, ObjectManager:GetEnemyMinions())
+				if Pos and Hit >= 3 and Utils:GetDistance(Pos) < self.E.range then 
+					mh.spellbook:CastSpell(2, D3DXVECTOR3(Pos.x, Pos.y, Pos.z))	
+				end
+			end
+		end
+	end
+end
+
+function Lux:KillSteal()
+	for k, enemy in pairs(ObjectManager:GetEnemyHeroes()) do
+		if Utils:ValidTarget(enemy) and Utils:GetDistance(enemy, mh) < self.R.range then
+			local qdmg = Utils:GetDmg(enemy, "Q")
+			local edmg = Utils:GetDmg(enemy, "E")
+			local rdmg = Utils:GetDmg(enemy, "R")
+			local idmg = Utils:GetDmg(enemy, "Ignite")
+			if menu.killstealsettings.useq:get() and self.Q.ready() and enemy.health < qdmg then
+				self:CastQ(enemy)
+			elseif menu.killstealsettings.usee:get() and self.E.ready() and enemy.health < edmg then
+				self:CastE(enemy)
+			elseif menu.killstealsettings.user:get() and self.R.ready() and enemy.health < rdmg then
+				self:CastR(enemy)
+			elseif menu.killstealsettings.usei:get() and self.I.ready() and enemy.health < idmg and Utils:GetDistance(enemy, mh) < self.I.range then
+				mh.spellbook:CastSpell(self.I.slot, enemy.networkId)	
+			end
+		end
+	end
+end
+
+function Lux:CastQ(unit)
+	if Utils:ValidTarget(unit) and Utils:GetDistance(mh, unit) <= self.Q.range then
+		local x, y = Prediction:prediction(unit, self.Q.pred.delay, self.Q.pred.speed, self.Q.range, self.Q.pred.width, self.Q.pred.collision)
+		if x and y >= 2 then
+			mh.spellbook:CastSpell(0, D3DXVECTOR3(x.x, x.y, x.z))			
+		end
+	end
+end
+
+function Lux:CastW()
+	if Utils:ValidTarget(self.target) and Utils:GetDistance(mh, self.target) <= 500 then
+		local enemyprecenthp = ((self.target.health/self.target.maxHealth)*100)
+		local myprecenthp = ((mh.health/mh.maxHealth)*100)
+		if myprecenthp < 65 and myprecenthp < enemyprecenthp then
+			mh.spellbook:CastSpell(1, D3DXVECTOR3(mh.position.x, mh.position.y, mh.position.z))	
+		end
+	end
+end
+
+function Lux:CastE(unit)
+	if Utils:ValidTarget(unit) and Utils:GetDistance(mh, unit) <= self.E.range then
+		local x, y = Prediction:prediction(unit, self.E.pred.delay, self.E.pred.speed, self.E.range, self.E.pred.radius, self.E.pred.collision)
+		if x and y >= 2 then
+			mh.spellbook:CastSpell(2, D3DXVECTOR3(x.x, x.y, x.z))			
+		end				
+	end
+end
+
+function Lux:CastR(unit)
+	if Utils:ValidTarget(unit) and Utils:GetDistance(mh, unit) <= self.R.range then
+		local x, y = Prediction:prediction(unit, self.R.pred.delay, self.R.pred.speed, self.R.range, self.R.pred.radius, self.R.pred.collision)
+		if x and y >= 2 then
+			mh.spellbook:CastSpell(3, D3DXVECTOR3(x.x, x.y, x.z))			
+		end				
+	end
+end
+
+function Lux:OnDraw()
+	if menu.drawsettings.drawq:get() and self.Q.ready() then
+		DrawHandler:Circle3D(myHero.position, self.Q.range, 0xff00ff00)
+	end
+	if menu.drawsettings.draww:get() and self.W.ready() then
+		DrawHandler:Circle3D(myHero.position, self.W.range, 0xff00ff00)
+	end
+	if menu.drawsettings.drawe:get() and self.E.ready() then
+		DrawHandler:Circle3D(myHero.position, self.E.range, 0xff00ff00)
+	end
+	if menu.drawsettings.drawr:get() and self.R.ready() then
+		DrawHandler:Circle3D(myHero.position, self.R.range, 0xff00ff00)
+	end
+end
+
+function Lux:OnCreateObject(object, id)
+	if object and object.name == "LuxLightStrikeKugel" and object.asMissile.spellCaster.networkId == myHero.networkId then
+		self.eobject = object
+	end
+end		
+		
+function Lux:OnDeleteObject(object)
+	if object and object.name:find("Lux_Base_E_tar_nova") and self.eobject then
+		self.eobject = nil
+	end
+end
+
 ---------------------------------
 ---------------------------------
 ----------- UTILS ---------------
@@ -1176,6 +1440,18 @@ function Utils:GetDmg(unit, spell)
 			local dm2 = math.floor(135 * mh.spellbook:Spell(R).level + 135 + (mh.characterIntermediate.baseAbilityDamage * 0.6) + dm)
 			return self:CalcMagic(unit, dm2) or 0
 		end
+	elseif mh.charName == "Lux" then
+		if spell == "Q" and Lux.Q.ready() then
+			return self:CalcMagic(unit, (50 * mh.spellbook:Spell(Q).level) + (mh.characterIntermediate.baseAbilityDamage * 0.7)) or 0
+		elseif spell == "E" and Lux.E.ready() then
+			return self:CalcMagic(unit, (45 * mh.spellbook:Spell(E).level + 15) + (mh.characterIntermediate.baseAbilityDamage * 0.6)) or 0
+		elseif spell == "R" and Lux.R.ready() then
+			if extradmg then
+				return self:CalcMagic(unit, (100 * mh.spellbook:Spell(R).level + 210) + (mh.characterIntermediate.baseAbilityDamage * 0.95)) or 0
+			else
+				return self:CalcMagic(unit, (100 * mh.spellbook:Spell(R).level + 200) + (mh.characterIntermediate.baseAbilityDamage * 0.75)) or 0
+			end
+		end
 	end
 end
 
@@ -1209,8 +1485,8 @@ function Utils:GetDistance(p1, p2)
     return math.sqrt(self:GetDistanceSqr(p1, p2))
 end
 
-function Utils:ValidTarget(target)
-	return target and target.isValid and (target.team ~= mh.team) and not target.isInvulnerable and not target.isDead and target.isVisible
+function Utils:ValidTarget(target, distance)
+	return target and target.isValid and (target.team ~= mh.team) and not target.isInvulnerable and not target.isDead and target.isVisible and (distance == nil or self:GetDistance(target) <= distance)
 end
 
 function Utils:GetTarget(range)
