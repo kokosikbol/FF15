@@ -1,4 +1,4 @@
---last update: added lux, few tweaks
+--last update: Annie: fixed error spam, added more logic in 'E' usage.
 
 require 'GeometryLib'
 require 'FF15menu'
@@ -11,6 +11,7 @@ Orbwalk = {}
 Prediction = {}
 Utils = {}
 local mh = myHero
+local huge, flor = math.huge, math.floor 
 
 function OnLoad()
 	if mh.charName == "Brand" then
@@ -98,7 +99,7 @@ function Brand:Init()
 		pred = {
 			delay = 0.75,
 			radius = 250,
-			speed = math.huge,
+			speed = huge,
 			boundingRadiusMod = 0,
 			collision = false,
 		},
@@ -170,7 +171,7 @@ function Brand:Combo()
 		self:CastE(self.target)
 	end
 	if menu.combosettings.user:get() and self.R.ready() then
-		local dmg = math.floor(Utils:GetDmg(self.target, "Q")) + math.floor(Utils:GetDmg(self.target, "W")) + math.floor(Utils:GetDmg(self.target, "E")) + math.floor(Utils:GetDmg(self.target, "R"))
+		local dmg = flor(Utils:GetDmg(self.target, "Q")) + flor(Utils:GetDmg(self.target, "W")) + flor(Utils:GetDmg(self.target, "E")) + flor(Utils:GetDmg(self.target, "R"))
 		if self.target.health < dmg then
 			self:CastR(self.target)
 		end
@@ -352,10 +353,14 @@ function Annie:Init()
 		pred = {
 			delay = 0.6,
 			radius = 180,
-			speed = math.huge,
+			speed = huge,
 			boundingRadiusMod = 0,
 			collision = false,
 			},
+	}
+	self.E = {
+		slot = mh.spellbook:Spell(E),
+		ready = function() return mh.spellbook:CanUseSpell(2) == 0 end,
 	}
 	self.R = {
 		slot = mh.spellbook:Spell(R),
@@ -364,13 +369,14 @@ function Annie:Init()
 		pred = {
 			delay = 0.25,
 			radius = 200,
-			speed = math.huge,
+			speed = huge,
 			boundingRadiusMod = 0,
 			collision = false,
 		},
 	}
 	AddEvent(Events.OnBuffGain, function(unit, buff) self:OnGainBuff(unit, buff) end)
 	AddEvent(Events.OnBuffLost, function(unit, buff) self:OnRemoveBuff(unit, buff) end)
+	AddEvent(Events.OnBasicAttack, function(unit, spell) self:OnBasicAttack(unit, spell) end)
 	AddEvent(Events.OnTick, function() self:OnTick() end)
 	AddEvent(Events.OnDraw, function() self:OnDraw() end)
 	self:Menu()
@@ -399,15 +405,23 @@ function Annie:OnTick()
 end
 
 function Annie:OnGainBuff(unit, buff)
-	if unit and unit == mh and buff and (buff.scriptBaseBuff.name == "pyromania_particle") then
+	if unit and unit == mh and buff and (buff.name == "pyromania_particle") then
 		self.passive = true
 	end 
 end
 
 function Annie:OnRemoveBuff(unit, buff)
-	if unit and unit == mh and buff and (buff.scriptBaseBuff.name == "pyromania_particle") then
+	if unit and unit == mh and buff and (buff.name == "pyromania_particle") then
 		self.passive = false
 	end 
+end
+
+function Annie:OnBasicAttack(unit, spell)
+	if menu.combosettings.combokey:get() and unit and spell and unit.type == GameObjectType.AIHeroClient and spell.target.networkId == mh.networkId then
+		if menu.combosettings.usee:get() and self.E.ready() then
+			self:CastE()
+		end
+	end
 end
 
 function Annie:Combo()
@@ -418,11 +432,8 @@ function Annie:Combo()
 	if menu.combosettings.usew:get() and self.W.ready() then
 		self:CastW(self.target)
 	end
-	if menu.combosettings.usee:get() and self.E.ready() then
-		self:CastE()
-	end
 	if menu.combosettings.user:get() and self.R.ready() then
-		local dmg = math.floor(Utils:GetDmg(self.target, "Q")) + math.floor(Utils:GetDmg(self.target, "W")) + math.floor(Utils:GetDmg(self.target, "R"))
+		local dmg = flor(Utils:GetDmg(self.target, "Q")) + flor(Utils:GetDmg(self.target, "W")) + flor(Utils:GetDmg(self.target, "R"))
 		if self.target.health < dmg then
 			self:CastR(self.target)
 		end
@@ -630,7 +641,7 @@ function Blitzcrank:Combo()
 		self:CastE(self.target)
 	end
 	if menu.combosettings.user:get() and self.R.ready() then
-		local dmg = math.floor(Utils:GetDmg(self.target, "Q")) + math.floor(Utils:GetDmg(self.target, "R"))
+		local dmg = flor(Utils:GetDmg(self.target, "Q")) + flor(Utils:GetDmg(self.target, "R"))
 		if self.target.health < dmg then
 			self:CastR(self.target)
 		end
@@ -775,7 +786,7 @@ function Syndra:Init()
 		pred = {
 			delay = 0.6,
 			width = 170,
-			speed = math.huge,
+			speed = huge,
 			collision = false,
 		},
 	}
@@ -865,7 +876,7 @@ function Syndra:Combo()
 		self:CastE(self.target)
 	end
 	if menu.combosettings.user:get() and self.R.ready() then
-		local dmg = math.floor(Utils:GetDmg(self.target, "Q")) + math.floor(Utils:GetDmg(self.target, "W")) + math.floor(Utils:GetDmg(self.target, "E")) + math.floor(Utils:GetDmg(self.target, "R"))
+		local dmg = flor(Utils:GetDmg(self.target, "Q")) + flor(Utils:GetDmg(self.target, "W")) + flor(Utils:GetDmg(self.target, "E")) + flor(Utils:GetDmg(self.target, "R"))
 		if self.target.health < dmg then
 			self:CastR(self.target)
 		end
@@ -1208,7 +1219,7 @@ function Lux:Init()
 		pred = {
 			delay = 1,
 			radius = 160,
-			speed = math.huge,
+			speed = huge,
 			boundingRadiusMod = 0,
 			collision = false,
 		},
@@ -1256,7 +1267,7 @@ function Lux:Combo()
 		self:CastW()
 	end
 	if menu.combosettings.user:get() and self.R.ready() then
-		local dmg = math.floor(Utils:GetDmg(self.target, "Q")) + math.floor(Utils:GetDmg(self.target, "E")) + math.floor(Utils:GetDmg(self.target, "R"))
+		local dmg = flor(Utils:GetDmg(self.target, "Q")) + flor(Utils:GetDmg(self.target, "E")) + flor(Utils:GetDmg(self.target, "R"))
 		if self.target.health < dmg then
 			self:CastR(self.target)
 		end
@@ -1436,8 +1447,8 @@ function Utils:GetDmg(unit, spell)
 		elseif spell == "E" and Syndra.E.ready() then
 			return self:CalcMagic(unit, (45 * mh.spellbook:Spell(E).level + 25) + (mh.characterIntermediate.baseAbilityDamage * 0.6)) or 0
 		elseif spell == "R" and Syndra.R.ready() then
-			local dm = math.floor((45 * mh.spellbook:Spell(R).level + 45 + (mh.characterIntermediate.baseAbilityDamage * 0.2)) * Syndra:OrbCount()+3)
-			local dm2 = math.floor(135 * mh.spellbook:Spell(R).level + 135 + (mh.characterIntermediate.baseAbilityDamage * 0.6) + dm)
+			local dm = flor((45 * mh.spellbook:Spell(R).level + 45 + (mh.characterIntermediate.baseAbilityDamage * 0.2)) * Syndra:OrbCount()+3)
+			local dm2 = flor(135 * mh.spellbook:Spell(R).level + 135 + (mh.characterIntermediate.baseAbilityDamage * 0.6) + dm)
 			return self:CalcMagic(unit, dm2) or 0
 		end
 	elseif mh.charName == "Lux" then
@@ -1596,7 +1607,7 @@ function Orbwalk:Orbwalk()
 		Target = Utils:GetTarget(mh.characterIntermediate.attackRange)
 	elseif IsKeyDown(0x43) then
 		local minion = Utils:GetMinion(mh.characterIntermediate.attackRange)
-		if minion and minion.health <= math.floor(Utils:GetDmg(minion, "AD")) then
+		if minion and minion.health <= flor(Utils:GetDmg(minion, "AD")) then
 			Target = minion
 		else
 			Target = Utils:GetTarget(mh.characterIntermediate.attackRange)
@@ -1630,7 +1641,7 @@ end
 ---------------------------------
 function Prediction:prediction(unit, delay, speed, range, width, collision)
 	local hit = 2
-	speed = speed or math.huge
+	speed = speed or huge
 	local pathes = unit.aiManagerClient.navPath
 	if pathes.isMoving then  
 		local pathPot = (unit.characterIntermediate.movementSpeed*((Utils:GetDistance(mh, unit)/speed)+delay))*.99
@@ -1657,12 +1668,12 @@ function Prediction:prediction(unit, delay, speed, range, width, collision)
 end
 
 function Prediction:MinionCollision(from, endpos, delay, speed, width, range, n)
-	local result, threshold = { }, math.huge
-	local source, sq_range = from, range and range * range or math.huge
+	local result, threshold = { }, huge
+	local source, sq_range = from, range and range * range or huge
 	for index, minion in pairs(ObjectManager:GetEnemyMinions()) do
 		if Utils:ValidTarget(minion, range+100) then
 			local p = minion.position
-			if sq_range == math.huge or (p.x - source.x) ^ 2 + (p.z - source.z) ^ 2 - self:GetHitBox(minion) ^ 2 < sq_range then
+			if sq_range == huge or (p.x - source.x) ^ 2 + (p.z - source.z) ^ 2 - self:GetHitBox(minion) ^ 2 < sq_range then
 				local t = self:CheckColl(source, endpos, minion, delay, speed, width)
 				if t and t > 0 then--and GetHealthPrediction(minion, delay + t) > 0 then
 					if n and #result + 1 > n then 
