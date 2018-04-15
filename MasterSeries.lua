@@ -1,4 +1,4 @@
---last update: Annie: fixed error spam, added more logic in 'E' usage.
+--last update: added ultimate black list menu for all champions
 
 require 'GeometryLib'
 require 'FF15menu'
@@ -44,6 +44,7 @@ function Brand:Menu()
 	menu:sub("harasssettings", "Harass Settings")
 	menu:sub("clearsettings", "Clear Settings")
 	menu:sub("killstealsettings", "KillSteal Settings")
+	menu:sub("ultsettings", "Ultimate Black List")
 	menu:sub("drawsettings", "Draw Settings")
 	-------------
 	menu.combosettings:checkbox("useq", "Use (Q)", true)
@@ -66,6 +67,10 @@ function Brand:Menu()
 	menu.killstealsettings:checkbox("usew", "Use (W)", true)
 	menu.killstealsettings:checkbox("usee", "Use (E)", true)
 	menu.killstealsettings:checkbox("usei", "Use Ignite", true)
+	-------------
+	for k, enemy in pairs(ObjectManager:GetEnemyHeroes()) do
+		menu.ultsettings:checkbox(enemy.charName, "Disable for " .. enemy.charName, false)
+	end
 	-------------
 	menu.drawsettings:checkbox("drawq", "Draw (Q) Circle", true)
 	menu.drawsettings:checkbox("draww", "Draw (W) Circle", true)
@@ -148,13 +153,13 @@ function Brand:OnTick()
 end
 
 function Brand:OnGainBuff(unit, buff)
-	if unit.team ~= mh.enemy and not unit.isDead and buff and buff.isValid and buff.scriptBaseBuff.name == "BrandAblaze" then
+	if unit.team ~= mh.enemy and not unit.isDead and buff and buff and buff.name == "BrandAblaze" then
 		self.FiredEnemies[unit.networkId] = unit
 	end
 end
 
 function Brand:OnRemoveBuff(unit, buff)
-	if unit and self.FiredEnemies[unit.networkID] and buff and buff.scriptBaseBuff.name == "BrandAblaze" then
+	if unit and self.FiredEnemies[unit.networkID] and buff and buff.name == "BrandAblaze" then
 		self.FiredEnemies[unit.networkId] = nil
 	end
 end
@@ -170,7 +175,7 @@ function Brand:Combo()
 	if menu.combosettings.usee:get() and self.E.ready() then
 		self:CastE(self.target)
 	end
-	if menu.combosettings.user:get() and self.R.ready() then
+	if menu.combosettings.user:get() and self.R.ready() and not menu.ultsettings[self.target.charName] then
 		local dmg = flor(Utils:GetDmg(self.target, "Q")) + flor(Utils:GetDmg(self.target, "W")) + flor(Utils:GetDmg(self.target, "E")) + flor(Utils:GetDmg(self.target, "R"))
 		if self.target.health < dmg then
 			self:CastR(self.target)
@@ -309,6 +314,7 @@ function Annie:Menu()
 	menu:sub("harasssettings", "Harass Settings")
 	menu:sub("clearsettings", "Clear Settings")
 	menu:sub("killstealsettings", "KillSteal Settings")
+	menu:sub("ultsettings", "Ultimate Black List")
 	menu:sub("drawsettings", "Draw Settings")
 	-------------
 	menu.combosettings:checkbox("useq", "Use (Q)", true)
@@ -328,6 +334,10 @@ function Annie:Menu()
 	menu.killstealsettings:checkbox("useq", "Use (Q)", true)
 	menu.killstealsettings:checkbox("usew", "Use (W)", true)
 	menu.killstealsettings:checkbox("usei", "Use Ignite", true)
+	-------------
+	for k, enemy in pairs(ObjectManager:GetEnemyHeroes()) do
+		menu.ultsettings:checkbox(enemy.charName, "Disable for " .. enemy.charName, false)
+	end
 	-------------
 	menu.drawsettings:checkbox("drawq", "Draw (Q&W) Circle", true)
 	menu.drawsettings:checkbox("drawr", "Draw (R) Circle", true)
@@ -432,7 +442,7 @@ function Annie:Combo()
 	if menu.combosettings.usew:get() and self.W.ready() then
 		self:CastW(self.target)
 	end
-	if menu.combosettings.user:get() and self.R.ready() then
+	if menu.combosettings.user:get() and self.R.ready() and not menu.ultsettings[self.target.charName] then
 		local dmg = flor(Utils:GetDmg(self.target, "Q")) + flor(Utils:GetDmg(self.target, "W")) + flor(Utils:GetDmg(self.target, "R"))
 		if self.target.health < dmg then
 			self:CastR(self.target)
@@ -532,6 +542,7 @@ function Blitzcrank:Menu()
 	menu:sub("harasssettings", "Harass Settings")
 	menu:sub("clearsettings", "Clear Settings")
 	menu:sub("killstealsettings", "KillSteal Settings")
+	menu:sub("ultsettings", "Ultimate Black List")
 	menu:sub("drawsettings", "Draw Settings")
 	-------------
 	menu.combosettings:checkbox("useq", "Use (Q)", true)
@@ -552,6 +563,10 @@ function Blitzcrank:Menu()
 	menu.killstealsettings:checkbox("useq", "Use (Q)", true)
 	menu.killstealsettings:checkbox("user", "Use (R)", true)
 	menu.killstealsettings:checkbox("usei", "Use Ignite", true)
+	-------------
+	for k, enemy in pairs(ObjectManager:GetEnemyHeroes()) do
+		menu.ultsettings:checkbox(enemy.charName, "Disable for " .. enemy.charName, false)
+	end
 	-------------
 	menu.drawsettings:checkbox("drawq", "Draw (Q) Circle", true)
 	menu.drawsettings:checkbox("drawe", "Draw (E) Circle", true)
@@ -622,7 +637,7 @@ function Blitzcrank:OnTick()
 end
 
 function Blitzcrank:OnGainBuff(unit, buff)
-	if unit.team ~= mh.enemy and not unit.isDead and buff and buff.isValid and buff.scriptBaseBuff.name == "rocketgrab2" then
+	if unit.team ~= mh.enemy and not unit.isDead and buff and buff.isValid and buff.name == "rocketgrab2" then
 		if ((menu.combosettings.combokey:get() and menu.combosettings.usee:get()) or (menu.harasssettings.harasskey:get() and menu.harasssettings.usee:get())) and self.E.ready() then
 			self:CastE(self.target)
 		end
@@ -640,7 +655,7 @@ function Blitzcrank:Combo()
 	if menu.combosettings.usee:get() and self.E.ready() and not self.Q.ready() and Utils:GetDistance(self.target, mh) <= self.E.range then
 		self:CastE(self.target)
 	end
-	if menu.combosettings.user:get() and self.R.ready() then
+	if menu.combosettings.user:get() and self.R.ready() and not menu.ultsettings[self.target.charName] then
 		local dmg = flor(Utils:GetDmg(self.target, "Q")) + flor(Utils:GetDmg(self.target, "R"))
 		if self.target.health < dmg then
 			self:CastR(self.target)
@@ -739,6 +754,7 @@ function Syndra:Menu()
 	menu:sub("harasssettings", "Harass Settings")
 	menu:sub("clearsettings", "Clear Settings")
 	menu:sub("killstealsettings", "KillSteal Settings")
+	menu:sub("ultsettings", "Ultimate Black List")
 	menu:sub("drawsettings", "Draw Settings")
 	-------------
 	menu.combosettings:checkbox("useq", "Use (Q)", true)
@@ -762,6 +778,10 @@ function Syndra:Menu()
 	menu.killstealsettings:checkbox("user", "Use (R)", true)
 	menu.killstealsettings:checkbox("usei", "Use Ignite", true)
 	-------------
+	for k, enemy in pairs(ObjectManager:GetEnemyHeroes()) do
+		menu.ultsettings:checkbox(enemy.charName, "Disable for " .. enemy.charName, false)
+	end
+	-------------
 	menu.drawsettings:checkbox("drawq", "Draw (Q) Circle", true)
 	menu.drawsettings:checkbox("draww", "Draw (W) Circle", true)
 	menu.drawsettings:checkbox("drawe", "Draw (E) Circle", true)
@@ -784,8 +804,8 @@ function Syndra:Init()
 		ready = function() return mh.spellbook:CanUseSpell(0) == 0 end,
 		range = 800,
 		pred = {
-			delay = 0.6,
-			width = 170,
+			delay = 0.5,
+			width = 165,
 			speed = huge,
 			collision = false,
 		},
@@ -796,8 +816,8 @@ function Syndra:Init()
 		range = 950,
 		pred = {
 			delay = 0.25,
-			radius = 210,
-			speed = 1450,
+			radius = 140,
+			speed = 1500,
 			collision = false,
 		},
 	}
@@ -806,9 +826,9 @@ function Syndra:Init()
 		ready = function() return mh.spellbook:CanUseSpell(2) == 0 end,
 		range = 700,
 		pred = {
-			delay = 0.3,
+			delay = 0.25,
 			radius = 45,
-			speed = 1600,
+			speed = 2500,
 			collision = false,
 		},
 	}
@@ -875,7 +895,7 @@ function Syndra:Combo()
 	if menu.combosettings.usee:get() and self.E.ready() then
 		self:CastE(self.target)
 	end
-	if menu.combosettings.user:get() and self.R.ready() then
+	if menu.combosettings.user:get() and self.R.ready() and not menu.ultsettings[self.target.charName] then
 		local dmg = flor(Utils:GetDmg(self.target, "Q")) + flor(Utils:GetDmg(self.target, "W")) + flor(Utils:GetDmg(self.target, "E")) + flor(Utils:GetDmg(self.target, "R"))
 		if self.target.health < dmg then
 			self:CastR(self.target)
@@ -1143,6 +1163,7 @@ function Lux:Menu()
 	menu:sub("harasssettings", "Harass Settings")
 	menu:sub("clearsettings", "Clear Settings")
 	menu:sub("killstealsettings", "KillSteal Settings")
+	menu:sub("ultsettings", "Ultimate Black List")
 	menu:sub("drawsettings", "Draw Settings")
 	-------------
 	menu.combosettings:checkbox("useq", "Use (Q)", true)
@@ -1163,6 +1184,10 @@ function Lux:Menu()
 	menu.killstealsettings:checkbox("usee", "Use (E)", true)
 	menu.killstealsettings:checkbox("user", "Use (R)", true)
 	menu.killstealsettings:checkbox("usei", "Use Ignite", true)
+	-------------
+	for k, enemy in pairs(ObjectManager:GetEnemyHeroes()) do
+		menu.ultsettings:checkbox(enemy.charName, "Disable for " .. enemy.charName, false)
+	end
 	-------------
 	menu.drawsettings:checkbox("drawq", "Draw (Q) Circle", true)
 	menu.drawsettings:checkbox("draww", "Draw (W) Circle", true)
@@ -1266,7 +1291,7 @@ function Lux:Combo()
 	if menu.combosettings.usew:get() and self.W.ready() then
 		self:CastW()
 	end
-	if menu.combosettings.user:get() and self.R.ready() then
+	if menu.combosettings.user:get() and self.R.ready() and not menu.ultsettings[self.target.charName] then
 		local dmg = flor(Utils:GetDmg(self.target, "Q")) + flor(Utils:GetDmg(self.target, "E")) + flor(Utils:GetDmg(self.target, "R"))
 		if self.target.health < dmg then
 			self:CastR(self.target)
@@ -1502,7 +1527,7 @@ end
 
 function Utils:GetTarget(range)
 	for k, v in pairs(ObjectManager:GetEnemyHeroes()) do
-		if self:ValidTarget(v) and self:GetDistance(v, mh) < range then
+		if self:ValidTarget(v, range) and self:GetDistance(v, mh) < range then
 			return v
 		end
 	end
