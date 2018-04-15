@@ -1,4 +1,4 @@
---last update: added ultimate black list menu for all champions
+--last update: added fizz
 
 require 'GeometryLib'
 require 'FF15menu'
@@ -7,6 +7,7 @@ Brand = {}
 Blitzcrank = {}
 Syndra = {}
 Lux = {}
+Fizz = {}
 Orbwalk = {}
 Prediction = {}
 Utils = {}
@@ -29,6 +30,9 @@ function OnLoad()
 	elseif mh.charName == "Lux" then
 		Lux:Init()
 		PrintChat("<b><font color=\"#ff6600\">MasterSeries: </font></b><font color=\"#FFFFFF\"> Lux Loaded. Welcome :)</font>")
+	elseif mh.charName == "Fizz" then
+		Fizz:Init()
+		PrintChat("<b><font color=\"#ff6600\">MasterSeries: </font></b><font color=\"#FFFFFF\"> Fizz Loaded. Welcome :)</font>")
 	end
 	Orbwalk:Init()
 end
@@ -1416,6 +1420,238 @@ function Lux:OnDeleteObject(object)
 	end
 end
 
+
+
+---------------------------------
+---------------------------------
+----------- FIZZ ----------------
+---------------------------------
+---------------------------------
+function Fizz:Menu()
+	menu = Menu("MasterSeries", "MasterSeries-Fizz")
+	menu:sub("combosettings", "Combo Settings")
+	menu:sub("harasssettings", "Harass Settings")
+	menu:sub("clearsettings", "Clear Settings")
+	menu:sub("killstealsettings", "KillSteal Settings")
+	menu:sub("ultsettings", "Ultimate Black List")
+	menu:sub("drawsettings", "Draw Settings")
+	-------------
+	menu.combosettings:checkbox("useq", "Use (Q)", true)
+	menu.combosettings:checkbox("usew", "Use (W)", true)
+	menu.combosettings:checkbox("usee", "Use (E)", true)
+	menu.combosettings:checkbox("user", "Use (R)", true)
+	menu.combosettings:key("combokey", "Combo Key:", 32)
+	-------------
+	menu.harasssettings:checkbox("useq", "Use (Q)", true)
+	menu.harasssettings:checkbox("usee", "Use (E)", true)
+	menu.harasssettings:key("harasskey", "Harass Key:", 67)
+	------------
+	menu.clearsettings:checkbox("useq", "Use (Q)", true)
+	menu.clearsettings:checkbox("usew", "Use (W)", true)
+	menu.clearsettings:checkbox("usee", "Use (E)", true)
+	menu.clearsettings:key("clearkey", "Clear Key:", 86)
+	-------------
+	menu.killstealsettings:checkbox("useq", "Use (Q)", true)
+	menu.killstealsettings:checkbox("usee", "Use (E)", true)
+	menu.killstealsettings:checkbox("user", "Use (R)", true)
+	menu.killstealsettings:checkbox("usei", "Use Ignite", true)
+	-------------
+	for k, enemy in pairs(ObjectManager:GetEnemyHeroes()) do
+		menu.ultsettings:checkbox(enemy.charName, "Disable for " .. enemy.charName, false)
+	end
+	-------------
+	menu.drawsettings:checkbox("drawq", "Draw (Q) Circle", true)
+	menu.drawsettings:checkbox("draww", "Draw (W) Circle", true)
+	menu.drawsettings:checkbox("drawe", "Draw (E) Circle", true)
+	menu.drawsettings:checkbox("drawr", "Draw (R) Circle", true)
+end
+
+function Fizz:Init()
+	self.passive = false
+	self.target, self.tsrange = nil, 650
+	self.I = {
+		slot = mh.spellbook:Spell(4).name:find("SummonerDot") and 4 or mh.spellbook:Spell(5).name:find("SummonerDot") and 5 or nil,
+		ready = function() return self.I.slot and mh.spellbook:CanUseSpell(self.I.slot) == 0  or false end,
+		range = 600,
+	}
+	self.Q = {
+		slot = mh.spellbook:Spell(Q),
+		ready = function() return mh.spellbook:CanUseSpell(0) == 0 end,
+		range = 550,
+	}
+	self.W = {
+		slot = mh.spellbook:Spell(W),
+		ready = function() return mh.spellbook:CanUseSpell(1) == 0 end,
+		range = 300,
+	}
+	self.E = {
+		slot = mh.spellbook:Spell(E),
+		ready = function() return mh.spellbook:CanUseSpell(2) == 0 end,
+		range = 400,
+		pred = {
+			delay = 0.25,
+			radius = 270,
+			speed = huge,
+			boundingRadiusMod = 0,
+			collision = false,
+		},
+	}
+	self.R = {
+		slot = mh.spellbook:Spell(R),
+		ready = function() return mh.spellbook:CanUseSpell(3) == 0 end,
+		range = 1300,
+		pred = {
+			delay = 0.25,
+			radius = 80,
+			speed = 1200,
+			boundingRadiusMod = 0,
+			collision = false,
+		},
+	}
+	AddEvent(Events.OnTick, function() self:OnTick() end)
+	AddEvent(Events.OnDraw, function() self:OnDraw() end)
+	self:Menu()
+end
+
+function Fizz:OnTick()
+	if self.R.ready() then
+		self.tsrange = self.R.range
+	elseif not self.R.ready() and self.Q.ready() then
+		self.tsrange = self.Q.range
+	elseif not self.R.ready() and not self.Q.ready() then
+		self.tsrange = self.E.range
+	end
+	self.target = Utils:GetTarget(self.tsrange)
+	if menu.combosettings.combokey:get() then 
+		Orbwalk:Orbwalk()
+		self:Combo()
+	end
+	if menu.harasssettings.harasskey:get() then 
+		Orbwalk:Orbwalk()
+		self:Harass()
+	end
+	if menu.clearsettings.clearkey:get() then 
+		Orbwalk:Orbwalk()
+		self:Clear()
+	end
+	self:KillSteal()
+end
+
+function Fizz:Combo()
+	if not Utils:ValidTarget(self.target) then return end
+	if menu.combosettings.useq:get() and self.Q.ready() then
+		self:CastQ(self.target)
+	end
+	if menu.combosettings.usew:get() and self.W.ready() then
+		self:CastW(self.target)
+	end
+	if menu.combosettings.usee:get() and self.E.ready() then
+		self:CastE(self.target)
+	end
+	if menu.combosettings.user:get() and self.R.ready() and not menu.ultsettings[self.target.charName] then
+		local dmg = flor(Utils:GetDmg(self.target, "Q")) + flor(Utils:GetDmg(self.target, "W")) + flor(Utils:GetDmg(self.target, "E")) + flor(Utils:GetDmg(self.target, "R"))
+		if self.target.health < dmg then
+			self:CastR(self.target)
+		end
+	end
+end
+
+function Fizz:Harass()
+	if not Utils:ValidTarget(self.target) then return end
+	if menu.harasssettings.useq:get() and self.Q.ready() then
+		self:CastQ(self.target)
+	end
+	if menu.harasssettings.usee:get() and self.E.ready() then
+		self:CastE(self.target)
+	end
+end
+
+function Fizz:Clear()
+	for i, minion in pairs(ObjectManager:GetEnemyMinions()) do
+		if Utils:ValidTarget(minion, 1300) then
+			if menu.clearsettings.useq:get() and Utils:GetDistance(minion, mh) <= self.Q.range then
+				self:CastQ(minion)
+			end
+			if menu.clearsettings.usew:get() and Utils:GetDistance(minion, mh) <= self.W.range then
+				self:CastW(minion)
+			end
+			if menu.clearsettings.usee:get() and Utils:GetDistance(minion, mh) <= self.E.range then
+				local Pos, Hit = Utils:GetBestCircleFarmPosition(self.E.range, self.E.pred.radius, ObjectManager:GetEnemyMinions())
+				if Pos and Hit >= 3 and Utils:GetDistance(Pos) < self.E.range then 
+					mh.spellbook:CastSpell(2, D3DXVECTOR3(Pos.x, Pos.y, Pos.z))	
+				end
+			end
+		end
+	end
+end
+
+function Fizz:KillSteal()
+	for k, enemy in pairs(ObjectManager:GetEnemyHeroes()) do
+		if Utils:ValidTarget(enemy) and Utils:GetDistance(enemy, mh) < self.Q.range then
+			local qdmg = Utils:GetDmg(enemy, "Q")
+			local edmg = Utils:GetDmg(enemy, "E")
+			local rdmg = Utils:GetDmg(enemy, "R")
+			local idmg = Utils:GetDmg(enemy, "Ignite")
+			if menu.killstealsettings.useq:get() and self.Q.ready() and enemy.health < qdmg then
+				self:CastQ(enemy)
+			elseif menu.killstealsettings.usee:get() and self.E.ready() and enemy.health < edmg then
+				self:CastE(enemy)
+			elseif menu.killstealsettings.user:get() and self.R.ready() and enemy.health < rdmg then
+				self:CastR(enemy)
+			elseif menu.killstealsettings.usei:get() and self.I.ready() and enemy.health < idmg and Utils:GetDistance(enemy, mh) < self.I.range then
+				mh.spellbook:CastSpell(self.I.slot, enemy.networkId)	
+			end
+		end
+	end
+end
+
+function Fizz:CastQ(unit)
+	if Utils:ValidTarget(unit) and Utils:GetDistance(mh, unit) <= self.Q.range then
+		mh.spellbook:CastSpell(0, unit.networkId)	
+	end
+end
+
+function Fizz:CastW(unit)
+	if Utils:ValidTarget(unit) and Utils:GetDistance(mh, unit) <= self.W.range then
+		mh.spellbook:CastSpell(1, mh.networkId)	
+	end
+end
+
+function Fizz:CastE(unit)
+	if Utils:ValidTarget(unit) and Utils:GetDistance(mh, unit) <= self.E.range then
+		local x, y = Prediction:prediction(unit, self.E.pred.delay, self.E.pred.speed, self.E.range, self.E.pred.radius, self.E.pred.collision)
+		if x and y >= 2 then
+			mh.spellbook:CastSpell(2, D3DXVECTOR3(x.x, x.y, x.z))			
+		end				
+	end	
+end
+
+function Fizz:CastR(unit)
+	if Utils:ValidTarget(unit) and Utils:GetDistance(mh, unit) <= self.R.range then
+		local x, y = Prediction:prediction(unit, self.R.pred.delay, self.R.pred.speed, self.R.range, self.R.pred.radius, self.R.pred.collision)
+		if x and y >= 2 then
+			mh.spellbook:CastSpell(3, D3DXVECTOR3(x.x, x.y, x.z))			
+		end				
+	end
+end
+
+function Fizz:OnDraw()
+	if menu.drawsettings.drawq:get() and self.Q.ready() then
+		DrawHandler:Circle3D(myHero.position, self.Q.range, 0xff00ff00)
+	end
+	if menu.drawsettings.draww:get() and self.W.ready() then
+		DrawHandler:Circle3D(myHero.position, self.W.range, 0xff00ff00)
+	end
+	if menu.drawsettings.drawe:get() and self.E.ready() then
+		DrawHandler:Circle3D(myHero.position, self.E.range, 0xff00ff00)
+	end
+	if menu.drawsettings.drawr:get() and self.R.ready() then
+		DrawHandler:Circle3D(myHero.position, self.R.range, 0xff00ff00)
+	end
+end
+
+
+
 ---------------------------------
 ---------------------------------
 ----------- UTILS ---------------
@@ -1482,11 +1718,36 @@ function Utils:GetDmg(unit, spell)
 		elseif spell == "E" and Lux.E.ready() then
 			return self:CalcMagic(unit, (45 * mh.spellbook:Spell(E).level + 15) + (mh.characterIntermediate.baseAbilityDamage * 0.6)) or 0
 		elseif spell == "R" and Lux.R.ready() then
-			if extradmg then
+			if unit.buffManager:HasBuff("AsheQAttack") then
 				return self:CalcMagic(unit, (100 * mh.spellbook:Spell(R).level + 210) + (mh.characterIntermediate.baseAbilityDamage * 0.95)) or 0
 			else
 				return self:CalcMagic(unit, (100 * mh.spellbook:Spell(R).level + 200) + (mh.characterIntermediate.baseAbilityDamage * 0.75)) or 0
 			end
+		end
+	elseif mh.charName == "Fizz" then
+		if spell == "Q" and Fizz.Q.ready() then
+			if unit.buffManager:HasBuff("fizzrbomb") then
+				local qdm = {12, 30, 48, 66, 84}
+				return self:CalcMagic(unit, (qdm[mh.spellbook:Spell(Q).level]) + (mh.characterIntermediate.flatPhysicalDamageMod + mh.characterIntermediate.baseAttackDamage * 1.2) + (mh.characterIntermediate.baseAbilityDamage * 0.432))
+			else
+				local qdm = {10, 25, 40, 55, 70}
+				return self:CalcMagic(unit, (qdm[mh.spellbook:Spell(Q).level]) + (mh.characterIntermediate.flatPhysicalDamageMod + mh.characterIntermediate.baseAttackDamage) + (mh.characterIntermediate.baseAbilityDamage * 0.35))
+			end
+		elseif spell == "W" and Fizz.E.ready() then
+			if unit.buffManager:HasBuff("fizzrbomb") then
+				return self:CalcMagic(unit, (12 * mh.spellbook:Spell(W).level + 12) + (mh.characterIntermediate.baseAbilityDamage * 0.54))
+			else
+				return self:CalcMagic(unit, (10 * mh.spellbook:Spell(W).level + 10) + (mh.characterIntermediate.baseAbilityDamage * 0.45))
+			end
+		elseif spell == "E" and Fizz.E.ready() then
+			if unit.buffManager:HasBuff("fizzrbomb") then
+				local edmg = {84, 144, 204, 264, 324}
+				return self:CalcMagic(unit, (edmg[mh.spellbook:Spell(E).level]) + (mh.characterIntermediate.baseAbilityDamage * 0.9))
+			else
+				return self:CalcMagic(unit, (50 * mh.spellbook:Spell(E).level + 20) + (mh.characterIntermediate.baseAbilityDamage * 0.75))
+			end
+		elseif spell == "R" and Fizz.R.ready() then
+			return self:CalcMagic(unit, (125 * mh.spellbook:Spell(R).level + 75) + (mh.characterIntermediate.baseAbilityDamage * 1))
 		end
 	end
 end
