@@ -1,4 +1,4 @@
---last update: added fizz
+--last update: added ANTI-GAPCLOSER
 
 require 'GeometryLib'
 require 'FF15menu'
@@ -13,7 +13,70 @@ Prediction = {}
 Utils = {}
 local mh = myHero
 local huge, flor = math.huge, math.floor 
-
+local gapcloserspells = {
+		["Aatrox"]                      = {"Q"},
+		["Akali"]                       = {"R"},
+		["Alistar"]                     = {"W"},
+		["Amumu"]                       = {"Q"},
+		["Corki"]                       = {"W"},
+		["Diana"]                       = {"R"},
+		["Elise"]                       = {"Q", "E"},
+		["FiddleSticks"]                = {"R"},
+		["Ezreal"]                      = {"E"},
+		["Fiora"]                       = {"Q"},
+		["Fizz"]                        = {"Q"},
+		["Galio"]                       = {"E"},
+		["Gnar"]                        = {"E"},
+		["Gragas"]                      = {"E"},
+		["Graves"]                      = {"E"},
+		["Hecarim"]                     = {"R"},
+		["Irelia"]                      = {"Q"},
+		["JarvanIV"]                    = {"Q", "R"},
+		["Jax"]                         = {"Q"},
+		["Jayce"]                       = {"Q"},
+		["Kaisa"]                       = {"E", "R"},
+		["Katarina"]                    = {"E"},
+		["Kassadin"]                    = {"R"},
+		["Kayn"]                        = {"Q"},
+		["Kennen"]                      = {"E"},
+		["KhaZix"]                      = {"E"},
+		["Lissandra"]                   = {"E"},
+		["LeBlanc"]                     = {"W", "R"},
+		["LeeSin"]                      = {"Q", "W"},
+		["Leona"]                       = {"E"},
+		["Lucian"]                      = {"E"},
+		["Malphite"]                    = {"R"},
+		["MasterYi"]                    = {"Q"},
+		["MonkeyKing"]                  = {"E"},
+		["Nautilus"]                    = {"Q"},
+		["Nocturne"]                    = {"R"},
+		["Olaf"]                        = {"R"},
+		["Ornn"]                        = {"E"},
+		["Pantheon"]                    = {"W", "R"},
+		["Poppy"]                       = {"E"},
+		["RekSai"]                      = {"E"},
+		["Renekton"]                    = {"E"},
+		["Riven"]                       = {"Q", "E"},
+		["Rengar"]                      = {"R"},
+		["Sejuani"]                     = {"Q"},
+		["Sion"]                        = {"R"},
+		["Shen"]                        = {"E"},
+		["Shyvana"]                     = {"R"},
+		["Talon"]                       = {"E"},
+		["Thresh"]                      = {"Q"},
+		["Tristana"]                    = {"W"},
+		["Tryndamere"]                  = {"E"},
+		["Udyr"]                        = {"E"},
+		["Urgot"]                       = {"E"},
+		["Volibear"]                    = {"Q"},
+		["Vi"]                          = {"Q"},
+		["XinZhao"]                     = {"E"},
+		["Yasuo"]                       = {"E"},
+		["Zac"]                         = {"E"},
+		["Ziggs"]                       = {"W"},
+		["Zoe"]                         = {"R"},
+}
+	
 function OnLoad()
 	if mh.charName == "Brand" then
 		Brand:Init()
@@ -49,6 +112,7 @@ function Brand:Menu()
 	menu:sub("clearsettings", "Clear Settings")
 	menu:sub("killstealsettings", "KillSteal Settings")
 	menu:sub("ultsettings", "Ultimate Black List")
+	menu:sub("gapclosersettings", "Anti Gap-Closer Settings")
 	menu:sub("drawsettings", "Draw Settings")
 	-------------
 	menu.combosettings:checkbox("useq", "Use (Q)", true)
@@ -75,6 +139,18 @@ function Brand:Menu()
 	for k, enemy in pairs(ObjectManager:GetEnemyHeroes()) do
 		menu.ultsettings:checkbox(enemy.charName, "Disable for " .. enemy.charName, false)
 	end
+	-------------
+	menu.gapclosersettings:label("str", "Spells List:")
+	for i, enemy in ipairs(ObjectManager:GetEnemyHeroes()) do
+		local UnitGapcloserSpells = gapcloserspells[enemy.charName]
+		if UnitGapcloserSpells then
+			for i, slot in pairs(UnitGapcloserSpells) do
+				menu.gapclosersettings:checkbox(enemy.charName.."."..slot, "GapCloser "..enemy.charName.." "..slot, true)
+			end
+		end
+	end
+	menu.gapclosersettings:label("str2", "-----------")
+	menu.gapclosersettings:checkbox("enable", "Enable Anti-Gaploser", true)
 	-------------
 	menu.drawsettings:checkbox("drawq", "Draw (Q) Circle", true)
 	menu.drawsettings:checkbox("draww", "Draw (W) Circle", true)
@@ -127,6 +203,7 @@ function Brand:Init()
 	AddEvent(Events.OnBuffLost, function(unit, buff) self:OnRemoveBuff(unit, buff) end)
 	AddEvent(Events.OnTick, function() self:OnTick() end)
 	AddEvent(Events.OnDraw, function() self:OnDraw() end)
+	AddEvent(Events.OnProcessSpell, function(unit, spell) self:OnProcessSpell(unit, spell) end)
 	self:Menu()
 end
 
@@ -166,6 +243,36 @@ function Brand:OnRemoveBuff(unit, buff)
 	if unit and self.FiredEnemies[unit.networkID] and buff and buff.name == "BrandAblaze" then
 		self.FiredEnemies[unit.networkId] = nil
 	end
+end
+
+function Brand:OnProcessSpell(unit, spell)
+	if menu.gapclosersettings.enable:get() then
+		if unit and unit.team ~= mh.team and unit.type == mh.type and spell then
+			if Utils:ValidTarget(unit, self.Q.range) then
+				if self.Q.ready() and self.E.ready() then
+					local UnitGapcloserSpells = gapcloserspells[unit.charName]
+					if UnitGapcloserSpells then
+						for _, slot in pairs(UnitGapcloserSpells) do
+							local str = ("unit.charName" .. "." .. slot)
+							if spell.spellSlot == Utils:StringToSlot(slot) and menu.gapclosersettings.str:get() then 
+								if spell.target and spell.target == mh then
+									self:CastE(unit)
+									mh.spellbook:CastSpell(0, D3DXVECTOR3(unit.x, unit.y, unit.z))	
+								elseif not spell.target then
+									local endPos1 = Vector(unit) + 300 * (Vector(spell.endPos) - Vector(unit)):normalized()
+									local endPos2 = Vector(unit) + 100 * (Vector(spell.endPos) - Vector(unit)):normalized()
+									if (Utils:GetDistance(mh, unit) > Utils:GetDistance(mh, endPos1) or Utils:GetDistance(mh, unit) > Utils:GetDistance(mh, endPos2)) then
+										self:CastE(unit)
+										mh.spellbook:CastSpell(0, D3DXVECTOR3(unit.x, unit.y, unit.z))	
+									end
+								end
+							end
+						end
+					end
+				end
+			end
+		end
+    end
 end
 
 function Brand:Combo()
@@ -319,6 +426,7 @@ function Annie:Menu()
 	menu:sub("clearsettings", "Clear Settings")
 	menu:sub("killstealsettings", "KillSteal Settings")
 	menu:sub("ultsettings", "Ultimate Black List")
+	menu:sub("gapclosersettings", "Anti Gap-Closer Settings")
 	menu:sub("drawsettings", "Draw Settings")
 	-------------
 	menu.combosettings:checkbox("useq", "Use (Q)", true)
@@ -342,6 +450,18 @@ function Annie:Menu()
 	for k, enemy in pairs(ObjectManager:GetEnemyHeroes()) do
 		menu.ultsettings:checkbox(enemy.charName, "Disable for " .. enemy.charName, false)
 	end
+	-------------
+	menu.gapclosersettings:label("str", "Spells List:")
+	for i, enemy in ipairs(ObjectManager:GetEnemyHeroes()) do
+		local UnitGapcloserSpells = gapcloserspells[enemy.charName]
+		if UnitGapcloserSpells then
+			for i, slot in pairs(UnitGapcloserSpells) do
+				menu.gapclosersettings:checkbox(enemy.charName.."."..slot, "GapCloser "..enemy.charName.." "..slot, true)
+			end
+		end
+	end
+	menu.gapclosersettings:label("str2", "-----------")
+	menu.gapclosersettings:checkbox("enable", "Enable Anti-Gaploser", true)
 	-------------
 	menu.drawsettings:checkbox("drawq", "Draw (Q&W) Circle", true)
 	menu.drawsettings:checkbox("drawr", "Draw (R) Circle", true)
@@ -391,6 +511,7 @@ function Annie:Init()
 	AddEvent(Events.OnBuffGain, function(unit, buff) self:OnGainBuff(unit, buff) end)
 	AddEvent(Events.OnBuffLost, function(unit, buff) self:OnRemoveBuff(unit, buff) end)
 	AddEvent(Events.OnBasicAttack, function(unit, spell) self:OnBasicAttack(unit, spell) end)
+	AddEvent(Events.OnProcessSpell, function(unit, spell) self:OnProcessSpell(unit, spell) end)
 	AddEvent(Events.OnTick, function() self:OnTick() end)
 	AddEvent(Events.OnDraw, function() self:OnDraw() end)
 	self:Menu()
@@ -436,6 +557,42 @@ function Annie:OnBasicAttack(unit, spell)
 			self:CastE()
 		end
 	end
+end
+
+function Annie:OnProcessSpell(unit, spell)
+	if menu.gapclosersettings.enable:get() then
+		if unit and unit.team ~= mh.team and unit.type == mh.type and spell then
+			if Utils:ValidTarget(unit, self.Q.range) then
+				if self.passive then
+					local UnitGapcloserSpells = gapcloserspells[unit.charName]
+					if UnitGapcloserSpells then
+						for _, slot in pairs(UnitGapcloserSpells) do
+							local str = ("unit.charName" .. "." .. slot)
+							if spell.spellSlot == Utils:StringToSlot(slot) and menu.gapclosersettings.str:get() then 
+								if spell.target and spell.target == mh then
+									if self.Q.ready() then
+										self:CastQ(unit)
+									elseif self.W.ready() then
+										self:CastW(unit)
+									end
+								elseif not spell.target then
+									local endPos1 = Vector(unit) + 300 * (Vector(spell.endPos) - Vector(unit)):normalized()
+									local endPos2 = Vector(unit) + 100 * (Vector(spell.endPos) - Vector(unit)):normalized()
+									if (Utils:GetDistance(mh, unit) > Utils:GetDistance(mh, endPos1) or Utils:GetDistance(mh, unit) > Utils:GetDistance(mh, endPos2)) then
+										if self.Q.ready() then
+											self:CastQ(unit)
+										elseif self.W.ready() then
+											self:CastW(unit)
+										end
+									end
+								end
+							end
+						end
+					end
+				end
+			end
+		end
+    end
 end
 
 function Annie:Combo()
@@ -759,6 +916,7 @@ function Syndra:Menu()
 	menu:sub("clearsettings", "Clear Settings")
 	menu:sub("killstealsettings", "KillSteal Settings")
 	menu:sub("ultsettings", "Ultimate Black List")
+	menu:sub("gapclosersettings", "Anti Gap-Closer Settings")
 	menu:sub("drawsettings", "Draw Settings")
 	-------------
 	menu.combosettings:checkbox("useq", "Use (Q)", true)
@@ -785,6 +943,18 @@ function Syndra:Menu()
 	for k, enemy in pairs(ObjectManager:GetEnemyHeroes()) do
 		menu.ultsettings:checkbox(enemy.charName, "Disable for " .. enemy.charName, false)
 	end
+	-------------
+	menu.gapclosersettings:label("str", "Spells List:")
+	for i, enemy in ipairs(ObjectManager:GetEnemyHeroes()) do
+		local UnitGapcloserSpells = gapcloserspells[enemy.charName]
+		if UnitGapcloserSpells then
+			for i, slot in pairs(UnitGapcloserSpells) do
+				menu.gapclosersettings:checkbox(enemy.charName.."."..slot, "GapCloser "..enemy.charName.." "..slot, true)
+			end
+		end
+	end
+	menu.gapclosersettings:label("str2", "-----------")
+	menu.gapclosersettings:checkbox("enable", "Enable Anti-Gaploser", true)
 	-------------
 	menu.drawsettings:checkbox("drawq", "Draw (Q) Circle", true)
 	menu.drawsettings:checkbox("draww", "Draw (W) Circle", true)
@@ -1079,6 +1249,31 @@ function Syndra:OnProcessSpell(unit, spell)
 			EndT = os.clock() + 6.9 + 0.6 - NetClient.ping/2000
 		}
 	end
+	if menu.gapclosersettings.enable:get() then
+		if unit and unit.team ~= mh.team and unit.type == mh.type and spell then
+			if Utils:ValidTarget(unit, self.Q.range) then
+				if self.E.ready() then
+					local UnitGapcloserSpells = gapcloserspells[unit.charName]
+					if UnitGapcloserSpells then
+						for _, slot in pairs(UnitGapcloserSpells) do
+							local str = ("unit.charName" .. "." .. slot)
+							if spell.spellSlot == Utils:StringToSlot(slot) and menu.gapclosersettings.str:get() then 
+								if spell.target and spell.target == mh then
+									mh.spellbook:CastSpell(2, D3DXVECTOR3(unit.x, unit.y, unit.z))	
+								elseif not spell.target then
+									local endPos1 = Vector(unit) + 300 * (Vector(spell.endPos) - Vector(unit)):normalized()
+									local endPos2 = Vector(unit) + 100 * (Vector(spell.endPos) - Vector(unit)):normalized()
+									if (Utils:GetDistance(mh, unit) > Utils:GetDistance(mh, endPos1) or Utils:GetDistance(mh, unit) > Utils:GetDistance(mh, endPos2)) then
+										mh.spellbook:CastSpell(2, D3DXVECTOR3(unit.x, unit.y, unit.z))	
+									end
+								end
+							end
+						end
+					end
+				end
+			end
+		end
+    end
 end
 
 function Syndra:DeleteOldBalls()
@@ -1168,6 +1363,7 @@ function Lux:Menu()
 	menu:sub("clearsettings", "Clear Settings")
 	menu:sub("killstealsettings", "KillSteal Settings")
 	menu:sub("ultsettings", "Ultimate Black List")
+	menu:sub("gapclosersettings", "Anti Gap-Closer Settings")
 	menu:sub("drawsettings", "Draw Settings")
 	-------------
 	menu.combosettings:checkbox("useq", "Use (Q)", true)
@@ -1192,6 +1388,18 @@ function Lux:Menu()
 	for k, enemy in pairs(ObjectManager:GetEnemyHeroes()) do
 		menu.ultsettings:checkbox(enemy.charName, "Disable for " .. enemy.charName, false)
 	end
+	-------------
+	menu.gapclosersettings:label("str", "Spells List:")
+	for i, enemy in ipairs(ObjectManager:GetEnemyHeroes()) do
+		local UnitGapcloserSpells = gapcloserspells[enemy.charName]
+		if UnitGapcloserSpells then
+			for i, slot in pairs(UnitGapcloserSpells) do
+				menu.gapclosersettings:checkbox(enemy.charName.."."..slot, "GapCloser "..enemy.charName.." "..slot, true)
+			end
+		end
+	end
+	menu.gapclosersettings:label("str2", "-----------")
+	menu.gapclosersettings:checkbox("enable", "Enable Anti-Gaploser", true)
 	-------------
 	menu.drawsettings:checkbox("drawq", "Draw (Q) Circle", true)
 	menu.drawsettings:checkbox("draww", "Draw (W) Circle", true)
@@ -1255,6 +1463,7 @@ function Lux:Init()
 	}
 	AddEvent(Events.OnCreateObject, function(obj) self:OnCreateObject(obj, id) end)
 	AddEvent(Events.OnDeleteObject, function(obj) self:OnDeleteObject(obj) end)
+	AddEvent(Events.OnProcessSpell, function(unit, spell) self:OnProcessSpell(unit, spell) end)
 	AddEvent(Events.OnTick, function() self:OnTick() end)
 	AddEvent(Events.OnDraw, function() self:OnDraw() end)
 	self:Menu()
@@ -1420,7 +1629,33 @@ function Lux:OnDeleteObject(object)
 	end
 end
 
-
+function Lux:OnProcessSpell(unit, spell)
+	if menu.gapclosersettings.enable:get() then
+		if unit and unit.team ~= mh.team and unit.type == mh.type and spell then
+			if Utils:ValidTarget(unit, self.Q.range) then
+				if self.Q.ready() then
+					local UnitGapcloserSpells = gapcloserspells[unit.charName]
+					if UnitGapcloserSpells then
+						for _, slot in pairs(UnitGapcloserSpells) do
+							local str = ("unit.charName" .. "." .. slot)
+							if spell.spellSlot == Utils:StringToSlot(slot) and menu.gapclosersettings.str:get() then 
+								if spell.target and spell.target == mh then
+									self:CastQ(unit)
+								elseif not spell.target then
+									local endPos1 = Vector(unit) + 300 * (Vector(spell.endPos) - Vector(unit)):normalized()
+									local endPos2 = Vector(unit) + 100 * (Vector(spell.endPos) - Vector(unit)):normalized()
+									if (Utils:GetDistance(mh, unit) > Utils:GetDistance(mh, endPos1) or Utils:GetDistance(mh, unit) > Utils:GetDistance(mh, endPos2)) then
+										self:CastQ(unit)
+									end
+								end
+							end
+						end
+					end
+				end
+			end
+		end
+    end
+end
 
 ---------------------------------
 ---------------------------------
@@ -1698,7 +1933,7 @@ function Utils:GetDmg(unit, spell)
 		if spell == "Q" and Syndra.Q.ready() then
 			if mh.spellbook:Spell(Q).level > 0 and mh.spellbook:Spell(Q).level < 5 then
 				return self:CalcMagic(unit, (45 * mh.spellbook:Spell(Q).level + 5) + (mh.characterIntermediate.baseAbilityDamage * 0.65)) or 0
-			elseif mh:GetSpellData(_Q).level == 5 then
+			elseif mh:GetSpellData(Q).level == 5 then
 				local dd = (45 * mh.spellbook:Spell(Q).level + 5) + (mh.characterIntermediate.baseAbilityDamage * 0.65) * 0.15
 				local dd2 = (45 * mh.spellbook:Spell(Q).level + 5) + (mh.characterIntermediate.baseAbilityDamage * 0.65) + dd
 				return self:CalcMagic(unit, dd2) or 0
@@ -1855,6 +2090,18 @@ function Utils:Convert(pos)
 	return x
 end
 
+function Utils:StringToSlot(slot)
+	if slot == "Q" then
+		return 0
+	elseif slot == "W" then
+		return 1
+	elseif slot == "E" then
+		return 2
+	elseif slot == "R" then
+		return 3
+	end
+end
+
 delayedActions = {}
 function Utils:DelayAction(func, delay, args)
     if not delayedActionsExecuter then
@@ -1877,6 +2124,8 @@ function Utils:DelayAction(func, delay, args)
             delayedActions[time] = { { func = func, args = args } }
     end
 end
+
+
 ---------------------------------
 ---------------------------------
 ------- ORBWALKER ---------------
@@ -2012,3 +2261,8 @@ end
 function Prediction:GetHitBox(unit)
 	return unit.boundingRadius
 end
+
+
+
+
+
