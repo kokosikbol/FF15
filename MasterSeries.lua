@@ -1,4 +1,4 @@
---last update: added ANTI-GAPCLOSER
+--last update: added Auto-Interrupt
 
 require 'GeometryLib'
 require 'FF15menu'
@@ -76,7 +76,34 @@ local gapcloserspells = {
 		["Ziggs"]                       = {"W"},
 		["Zoe"]                         = {"R"},
 }
-	
+local chanellingspells = {
+    ["Caitlyn"]                     = {"R"},
+    ["Darius"]                      = {"R"},
+    ["FiddleSticks"]                = {"W", "R"},
+    ["Galio"]                       = {"W"},
+    ["Gragas"]                      = {"W"},
+    ["Janna"]                       = {"R"},
+    ["Karthus"]                     = {"R"},
+    ["Katarina"]                    = {"R"},
+    ["Lucian"]                      = {"R"},
+    ["Malzahar"]                    = {"R"},
+    ["MasterYi"]                    = {"W"},
+    ["MissFortune"]                 = {"R"},
+    ["Nunu"]                        = {"R"},
+    ["Pantheon"]                    = {"E", "R"},
+    ["Shen"]                        = {"R"},
+    ["Sion"]                        = {"Q"},
+    ["TahmKench"]                   = {"R"},
+    ["TwistedFate"]                 = {"R"},
+    ["Warwick"]                     = {"R"},
+    ["Varus"]                       = {"Q"},
+    ["VelKoz"]                      = {"R"},
+    ["Vi"]                          = {"Q"},
+    ["Xerath"]                      = {"Q", "R"},
+    ["Zac"]                         = {"E"},
+}
+
+
 function OnLoad()
 	if mh.charName == "Brand" then
 		Brand:Init()
@@ -113,6 +140,7 @@ function Brand:Menu()
 	menu:sub("killstealsettings", "KillSteal Settings")
 	menu:sub("ultsettings", "Ultimate Black List")
 	menu:sub("gapclosersettings", "Anti Gap-Closer Settings")
+	menu:sub("interruptsettings", "Auto-Interrupt Settings")
 	menu:sub("drawsettings", "Draw Settings")
 	-------------
 	menu.combosettings:checkbox("useq", "Use (Q)", true)
@@ -152,6 +180,18 @@ function Brand:Menu()
 	menu.gapclosersettings:label("str2", "-----------")
 	menu.gapclosersettings:checkbox("enable", "Enable Anti-Gaploser", true)
 	-------------
+	menu.interruptsettings:label("str", "Spells List:")
+	for i, enemy in ipairs(ObjectManager:GetEnemyHeroes()) do
+		local UnitInterruptSpells = chanellingspells[enemy.charName]
+		if UnitInterruptSpells then
+			for i, slot in pairs(UnitInterruptSpells) do
+				menu.interruptsettings:checkbox(enemy.charName.."."..slot, "Interrupt "..enemy.charName.." "..slot, true)
+			end
+		end
+	end
+	menu.interruptsettings:label("str2", "-----------")
+	menu.interruptsettings:checkbox("enable", "Enable Auto-Interrupt", true)
+	-------------
 	menu.drawsettings:checkbox("drawq", "Draw (Q) Circle", true)
 	menu.drawsettings:checkbox("draww", "Draw (W) Circle", true)
 	menu.drawsettings:checkbox("drawe", "Draw (E) Circle", true)
@@ -172,8 +212,8 @@ function Brand:Init()
 		range = 1050,
 		pred = {
 			delay = 0.25,
-			width = 70,
-			speed = 1550,
+			width = 80,
+			speed = 1500,
 			collision = true,
 		},
 	}
@@ -266,6 +306,24 @@ function Brand:OnProcessSpell(unit, spell)
 										mh.spellbook:CastSpell(0, D3DXVECTOR3(unit.x, unit.y, unit.z))	
 									end
 								end
+							end
+						end
+					end
+				end
+			end
+		end
+    end
+	if menu.interruptsettings.enable:get() then
+		if unit and unit.team ~= mh.team and unit.type == mh.type and spell then
+			if Utils:ValidTarget(unit, self.E.range) then
+				if self.Q.ready() and self.E.ready() then
+					local UnitInterruptSpells = chanellingspells[unit.charName]
+					if UnitInterruptSpells then
+						for _, slot in pairs(UnitInterruptSpells) do
+							local str = ("unit.charName" .. "." .. slot)
+							if spell.spellSlot == Utils:StringToSlot(slot) and menu.interruptsettings.str:get() then 
+								self:CastE(unit)
+								mh.spellbook:CastSpell(0, D3DXVECTOR3(unit.x, unit.y, unit.z))	
 							end
 						end
 					end
@@ -378,7 +436,7 @@ end
 
 function Brand:GetRAoeNear(unit)
 	local obj = Utils:TableMerge(ObjectManager:GetEnemyMinions(), ObjectManager:GetEnemyHeroes())
-	local obj2 = Utils:TableMerge(obj, Utils:GetJungleMinions())
+	local obj2 = Utils:TableMerge(obj, Utils:GetJungleMinions(self.R.range+200))
 	local count = 0
   	for i, target in pairs(obj2) do
   		if not target.name:find("Plant") then
@@ -427,6 +485,7 @@ function Annie:Menu()
 	menu:sub("killstealsettings", "KillSteal Settings")
 	menu:sub("ultsettings", "Ultimate Black List")
 	menu:sub("gapclosersettings", "Anti Gap-Closer Settings")
+	menu:sub("interruptsettings", "Auto-Interrupt Settings")
 	menu:sub("drawsettings", "Draw Settings")
 	-------------
 	menu.combosettings:checkbox("useq", "Use (Q)", true)
@@ -462,6 +521,18 @@ function Annie:Menu()
 	end
 	menu.gapclosersettings:label("str2", "-----------")
 	menu.gapclosersettings:checkbox("enable", "Enable Anti-Gaploser", true)
+	-------------
+	menu.interruptsettings:label("str", "Spells List:")
+	for i, enemy in ipairs(ObjectManager:GetEnemyHeroes()) do
+		local UnitInterruptSpells = chanellingspells[enemy.charName]
+		if UnitInterruptSpells then
+			for i, slot in pairs(UnitInterruptSpells) do
+				menu.interruptsettings:checkbox(enemy.charName.."."..slot, "Interrupt "..enemy.charName.." "..slot, true)
+			end
+		end
+	end
+	menu.interruptsettings:label("str2", "-----------")
+	menu.interruptsettings:checkbox("enable", "Enable Auto-Interrupt", true)
 	-------------
 	menu.drawsettings:checkbox("drawq", "Draw (Q&W) Circle", true)
 	menu.drawsettings:checkbox("drawr", "Draw (R) Circle", true)
@@ -563,7 +634,7 @@ function Annie:OnProcessSpell(unit, spell)
 	if menu.gapclosersettings.enable:get() then
 		if unit and unit.team ~= mh.team and unit.type == mh.type and spell then
 			if Utils:ValidTarget(unit, self.Q.range) then
-				if self.passive then
+				if self.passive and (self.Q.ready() or self.W.ready()) then
 					local UnitGapcloserSpells = gapcloserspells[unit.charName]
 					if UnitGapcloserSpells then
 						for _, slot in pairs(UnitGapcloserSpells) do
@@ -585,6 +656,27 @@ function Annie:OnProcessSpell(unit, spell)
 											self:CastW(unit)
 										end
 									end
+								end
+							end
+						end
+					end
+				end
+			end
+		end
+    end
+	if menu.interruptsettings.enable:get() then
+		if unit and unit.team ~= mh.team and unit.type == mh.type and spell then
+			if Utils:ValidTarget(unit, self.Q.range) then
+				if self.passive and (self.Q.ready() or self.W.ready()) then
+					local UnitInterruptSpells = chanellingspells[unit.charName]
+					if UnitInterruptSpells then
+						for _, slot in pairs(UnitInterruptSpells) do
+							local str = ("unit.charName" .. "." .. slot)
+							if spell.spellSlot == Utils:StringToSlot(slot) and menu.interruptsettings.str:get() then 
+								if self.Q.ready() then
+									self:CastQ(unit)
+								elseif self.W.ready() then
+									self:CastW(unit)
 								end
 							end
 						end
@@ -704,6 +796,7 @@ function Blitzcrank:Menu()
 	menu:sub("clearsettings", "Clear Settings")
 	menu:sub("killstealsettings", "KillSteal Settings")
 	menu:sub("ultsettings", "Ultimate Black List")
+	menu:sub("interruptsettings", "Auto-Interrupt Settings")
 	menu:sub("drawsettings", "Draw Settings")
 	-------------
 	menu.combosettings:checkbox("useq", "Use (Q)", true)
@@ -728,6 +821,18 @@ function Blitzcrank:Menu()
 	for k, enemy in pairs(ObjectManager:GetEnemyHeroes()) do
 		menu.ultsettings:checkbox(enemy.charName, "Disable for " .. enemy.charName, false)
 	end
+	-------------
+	menu.interruptsettings:label("str", "Spells List:")
+	for i, enemy in ipairs(ObjectManager:GetEnemyHeroes()) do
+		local UnitInterruptSpells = chanellingspells[enemy.charName]
+		if UnitInterruptSpells then
+			for i, slot in pairs(UnitInterruptSpells) do
+				menu.interruptsettings:checkbox(enemy.charName.."."..slot, "Interrupt "..enemy.charName.." "..slot, true)
+			end
+		end
+	end
+	menu.interruptsettings:label("str2", "-----------")
+	menu.interruptsettings:checkbox("enable", "Enable Auto-Interrupt", true)
 	-------------
 	menu.drawsettings:checkbox("drawq", "Draw (Q) Circle", true)
 	menu.drawsettings:checkbox("drawe", "Draw (E) Circle", true)
@@ -768,6 +873,7 @@ function Blitzcrank:Init()
 		range = 600,
 	}
 	AddEvent(Events.OnBuffGain, function(unit, buff) self:OnGainBuff(unit, buff) end)
+	AddEvent(Events.OnProcessSpell, function(unit, spell) self:OnProcessSpell(unit, spell) end)
 	AddEvent(Events.OnTick, function() self:OnTick() end)
 	AddEvent(Events.OnDraw, function() self:OnDraw() end)
 	self:Menu()
@@ -803,6 +909,30 @@ function Blitzcrank:OnGainBuff(unit, buff)
 			self:CastE(self.target)
 		end
 	end
+end
+
+function Blitzcrank:OnProcessSpell(unit, spell)
+	if menu.interruptsettings.enable:get() then
+		if unit and unit.team ~= mh.team and unit.type == mh.type and spell then
+			if Utils:ValidTarget(unit, self.Q.range) then
+				if self.Q.ready() or self.R.ready() then
+					local UnitInterruptSpells = chanellingspells[unit.charName]
+					if UnitInterruptSpells then
+						for _, slot in pairs(UnitInterruptSpells) do
+							local str = ("unit.charName" .. "." .. slot)
+							if spell.spellSlot == Utils:StringToSlot(slot) and menu.interruptsettings.str:get() then 
+								if self.R.ready() then
+									self:CastR(unit)
+								elseif self.Q.ready() then
+									self:CastQ(unit)
+								end
+							end
+						end
+					end
+				end
+			end
+		end
+    end
 end
 
 function Blitzcrank:Combo()
@@ -917,6 +1047,7 @@ function Syndra:Menu()
 	menu:sub("killstealsettings", "KillSteal Settings")
 	menu:sub("ultsettings", "Ultimate Black List")
 	menu:sub("gapclosersettings", "Anti Gap-Closer Settings")
+	menu:sub("interruptsettings", "Auto-Interrupt Settings")
 	menu:sub("drawsettings", "Draw Settings")
 	-------------
 	menu.combosettings:checkbox("useq", "Use (Q)", true)
@@ -955,6 +1086,18 @@ function Syndra:Menu()
 	end
 	menu.gapclosersettings:label("str2", "-----------")
 	menu.gapclosersettings:checkbox("enable", "Enable Anti-Gaploser", true)
+	-------------
+	menu.interruptsettings:label("str", "Spells List:")
+	for i, enemy in ipairs(ObjectManager:GetEnemyHeroes()) do
+		local UnitInterruptSpells = chanellingspells[enemy.charName]
+		if UnitInterruptSpells then
+			for i, slot in pairs(UnitInterruptSpells) do
+				menu.interruptsettings:checkbox(enemy.charName.."."..slot, "Interrupt "..enemy.charName.." "..slot, true)
+			end
+		end
+	end
+	menu.interruptsettings:label("str2", "-----------")
+	menu.interruptsettings:checkbox("enable", "Enable Auto-Interrupt", true)
 	-------------
 	menu.drawsettings:checkbox("drawq", "Draw (Q) Circle", true)
 	menu.drawsettings:checkbox("draww", "Draw (W) Circle", true)
@@ -1251,7 +1394,7 @@ function Syndra:OnProcessSpell(unit, spell)
 	end
 	if menu.gapclosersettings.enable:get() then
 		if unit and unit.team ~= mh.team and unit.type == mh.type and spell then
-			if Utils:ValidTarget(unit, self.Q.range) then
+			if Utils:ValidTarget(unit, self.E.range) then
 				if self.E.ready() then
 					local UnitGapcloserSpells = gapcloserspells[unit.charName]
 					if UnitGapcloserSpells then
@@ -1267,6 +1410,23 @@ function Syndra:OnProcessSpell(unit, spell)
 										mh.spellbook:CastSpell(2, D3DXVECTOR3(unit.x, unit.y, unit.z))	
 									end
 								end
+							end
+						end
+					end
+				end
+			end
+		end
+    end
+	if menu.interruptsettings.enable:get() then
+		if unit and unit.team ~= mh.team and unit.type == mh.type and spell then
+			if Utils:ValidTarget(unit, self.E.range) then
+				if self.E.ready() then
+					local UnitInterruptSpells = chanellingspells[unit.charName]
+					if UnitInterruptSpells then
+						for _, slot in pairs(UnitInterruptSpells) do
+							local str = ("unit.charName" .. "." .. slot)
+							if spell.spellSlot == Utils:StringToSlot(slot) and menu.interruptsettings.str:get() then 
+								mh.spellbook:CastSpell(2, D3DXVECTOR3(unit.x, unit.y, unit.z))	
 							end
 						end
 					end
@@ -2051,7 +2211,7 @@ function Utils:GetBestCircleFarmPosition(range, radius, objects)
     local BestPos 
     local BestHit = 0
     for i, object in ipairs(objects) do
-		if self:GetDistance(object) < range then
+		if self:ValidTarget(object) and self:GetDistance(object) < range then
 			local hit = self:CountObjectsNearPos(object, radius, objects)
 			if hit > BestHit then
 				BestHit = hit
@@ -2072,12 +2232,12 @@ function Utils:TableMerge(t1, t2)
     return t1
 end
 
-function Utils:GetJungleMinions()
+function Utils:GetJungleMinions(range)
 	local jungleminions = {}
 	local minions = ObjectManager:GetEnemyMinions()
 	for i = 1, #minions do
 		local minion = minions[i]
-		if minion.team == 3 and Utils:GetDistance(minion, mh) < 1200 then
+		if minion.team == 3 and Utils:GetDistance(minion, mh) < range then
 			jungleminions[#jungleminions + 1] = minion
 		end
 	end
