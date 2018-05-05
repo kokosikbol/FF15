@@ -1,4 +1,4 @@
---last update: added Auto-Interrupt
+--last update: Improve Target Selector, Lux Patch 8.9 Update, Few Improves
 
 require 'GeometryLib'
 require 'FF15menu'
@@ -12,7 +12,7 @@ Orbwalk = {}
 Prediction = {}
 Utils = {}
 local mh = myHero
-local huge, flor = math.huge, math.floor 
+local huge, flor, sqrtt, minn = math.huge, math.floor, math.sqrt, math.min
 local gapcloserspells = {
 		["Aatrox"]                      = {"Q"},
 		["Akali"]                       = {"R"},
@@ -225,7 +225,6 @@ function Brand:Init()
 			delay = 0.75,
 			radius = 250,
 			speed = huge,
-			boundingRadiusMod = 0,
 			collision = false,
 		},
 	}
@@ -271,6 +270,7 @@ function Brand:OnTick()
 		self:Clear()
 	end
 	self:KillSteal()
+	if self.target then print(self.target.charName) end
 end
 
 function Brand:OnGainBuff(unit, buff)
@@ -559,7 +559,6 @@ function Annie:Init()
 			delay = 0.6,
 			radius = 180,
 			speed = huge,
-			boundingRadiusMod = 0,
 			collision = false,
 			},
 	}
@@ -575,7 +574,6 @@ function Annie:Init()
 			delay = 0.25,
 			radius = 200,
 			speed = huge,
-			boundingRadiusMod = 0,
 			collision = false,
 		},
 	}
@@ -854,7 +852,6 @@ function Blitzcrank:Init()
 			delay = 0.25,
 			radius = 70,
 			speed = 1800,
-			boundingRadiusMod = 0,
 			collision = true,
 		},
 	}
@@ -1593,7 +1590,6 @@ function Lux:Init()
 			delay = 0.25,
 			radius = 150,
 			speed = 1800,
-			boundingRadiusMod = 0,
 			collision = false,
 		},
 	}
@@ -1603,9 +1599,8 @@ function Lux:Init()
 		range = 1100,
 		pred = {
 			delay = 0.25,
-			radius = 350,
-			speed = 1300,
-			boundingRadiusMod = 0,
+			radius = 310,
+			speed = 1200,
 			collision = false,
 		},
 	}
@@ -1617,7 +1612,6 @@ function Lux:Init()
 			delay = 1,
 			radius = 160,
 			speed = huge,
-			boundingRadiusMod = 0,
 			collision = false,
 		},
 	}
@@ -1887,7 +1881,6 @@ function Fizz:Init()
 			delay = 0.25,
 			radius = 270,
 			speed = huge,
-			boundingRadiusMod = 0,
 			collision = false,
 		},
 	}
@@ -1899,7 +1892,6 @@ function Fizz:Init()
 			delay = 0.25,
 			radius = 80,
 			speed = 1200,
-			boundingRadiusMod = 0,
 			collision = false,
 		},
 	}
@@ -2109,11 +2101,11 @@ function Utils:GetDmg(unit, spell)
 		end
 	elseif mh.charName == "Lux" then
 		if spell == "Q" and Lux.Q.ready() then
-			return self:CalcMagic(unit, (50 * mh.spellbook:Spell(Q).level) + (mh.characterIntermediate.baseAbilityDamage * 0.7)) or 0
+			return self:CalcMagic(unit, (45 * mh.spellbook:Spell(Q).level + 25) + (mh.characterIntermediate.baseAbilityDamage * 0.7)) or 0
 		elseif spell == "E" and Lux.E.ready() then
 			return self:CalcMagic(unit, (45 * mh.spellbook:Spell(E).level + 15) + (mh.characterIntermediate.baseAbilityDamage * 0.6)) or 0
 		elseif spell == "R" and Lux.R.ready() then
-			if unit.buffManager:HasBuff("AsheQAttack") then
+			if unit.buffManager:HasBuff("luxilluminatingfraulein") then
 				return self:CalcMagic(unit, (100 * mh.spellbook:Spell(R).level + 210) + (mh.characterIntermediate.baseAbilityDamage * 0.95)) or 0
 			else
 				return self:CalcMagic(unit, (100 * mh.spellbook:Spell(R).level + 200) + (mh.characterIntermediate.baseAbilityDamage * 0.75)) or 0
@@ -2174,7 +2166,7 @@ function Utils:GetDistanceSqr(p1, p2)
 end
 
 function Utils:GetDistance(p1, p2)
-    return math.sqrt(self:GetDistanceSqr(p1, p2))
+    return sqrtt(self:GetDistanceSqr(p1, p2))
 end
 
 function Utils:ValidTarget(target, distance)
@@ -2182,11 +2174,28 @@ function Utils:ValidTarget(target, distance)
 end
 
 function Utils:GetTarget(range)
+	local currenttarget = {target = nil, value = 0}
+	local function Priority(charName)
+		local p1 = {"Alistar", "Amumu", "Blitzcrank", "Braum", "Cho'Gath", "Dr. Mundo", "Garen", "Gnar", "Maokai", "Hecarim", "Leona", "Lulu", "Malphite", "Nasus", "Nautilus", "Nunu", "Olaf", "Rammus", "Renekton", "Sejuani", "Shen", "Shyvana", "Singed", "Sion", "Skarner", "Taric", "TahmKench", "Thresh", "Volibear", "Warwick", "MonkeyKing", "Yorick", "Zac", "Poppy", "Ornn"}
+		local p2 = {"Aatrox", "Darius", "Elise", "Evelynn", "Galio", "Gragas", "Irelia", "Jax", "Lee Sin", "Morgana", "Janna", "Nocturne", "Pantheon", "Rengar", "Rumble", "Swain", "Trundle", "Tryndamere", "Udyr", "Urgot", "Vi", "XinZhao", "RekSai", "Bard", "Nami", "Sona", "Camille", "Jarvan IV"}
+		local p3 = {"Akali", "Diana", "Ekko", "FiddleSticks", "Fiora", "Gangplank", "Fizz", "Heimerdinger", "Jayce", "Kassadin", "Kayle", "Kha'Zix", "Lissandra", "Mordekaiser", "Nidalee", "Riven", "Shaco", "Vladimir", "Yasuo", "Zilean", "Zyra", "Ryze"}
+		local p4 = {"Ahri", "Anivia", "Annie", "Ashe", "Azir", "Brand", "Caitlyn", "Cassiopeia", "Corki", "Draven", "Ezreal", "Graves", "Jinx", "Kalista", "Karma", "Karthus", "Katarina", "Kennen", "KogMaw", "Kindred", "Leblanc", "Lucian", "Lux", "Malzahar", "MasterYi", "MissFortune", "Orianna", "Quinn", "Sivir", "Syndra", "Talon", "Teemo", "Tristana", "TwistedFate", "Twitch", "Varus", "Vayne", "Veigar", "Velkoz", "Viktor", "Xerath", "Zed", "Ziggs", "Jhin", "Soraka", "Zoe", "Kayn"}
+		for i,n in pairs(p1) do if n == charName then return 4 end end 
+		for i,n in pairs(p2) do if n == charName then return 3 end end 
+		for i,n in pairs(p3) do if n == charName then return 2 end end 
+		for i,n in pairs(p4) do if n == charName then return 1 end end 
+		return .5
+	end
 	for k, v in pairs(ObjectManager:GetEnemyHeroes()) do
 		if self:ValidTarget(v, range) and self:GetDistance(v, mh) < range then
-			return v
+			local prior = 100 / Priority(v.charName)
+			local heroValue = v.health / prior
+			if not currenttarget.target or heroValue < currenttarget.value then 
+				currenttarget.target, currenttarget.value = v, heroValue 
+			end
 		end
-	end
+	end 
+	return currenttarget.target
 end
 
 function Utils:GetMinion(range)
@@ -2385,12 +2394,12 @@ end
 function Prediction:CheckColl(startPos, endPos, unit, delay, speed, width)
 	local startPath = unit.position
 	local v1 = { ['x'] = endPos.x - startPos.x, ['y'] = endPos.z - startPos.z }
-	local d1 = math.sqrt(v1.x * v1.x + v1.y * v1.y)
+	local d1 = sqrtt(v1.x * v1.x + v1.y * v1.y)
 	if unit.aiManagerClient.navPath.isMoving then
 		local endPath = unit.aiManagerClient.navPath.paths[1]
 		v1.x, v1.y = (v1.x / d1) * speed, (v1.y / d1) * speed
 		local v2 = { x = endPath.x - startPath.x, y = endPath.z - startPath.z }
-		local d2 = math.sqrt(v2.x * v2.x + v2.y * v2.y)
+		local d2 = sqrtt(v2.x * v2.x + v2.y * v2.y)
 		local mS = unit.characterIntermediate.movementSpeed
 		v2.x, v2.y = (v2.x / d2) * mS, (v2.y / d2) * mS
 		local p = { x = startPos.x - endPath.x, y = startPos.z - endPath.z }
@@ -2401,14 +2410,14 @@ function Prediction:CheckColl(startPos, endPos, unit, delay, speed, width)
 			local c = ((p.x * p.x) + (p.y * p.y)) - (width + self:GetHitBox(unit)) ^ 2
 			local discriminant = b * b - 4 * a * c
 			if discriminant >= 0 then
-				local t1 = (-b + math.sqrt(discriminant)) / (2 * a)
-				local t2 = (-b - math.sqrt(discriminant)) / (2 * a)
-				local t = math.min(t1, t2)
+				local t1 = (-b + sqrtt(discriminant)) / (2 * a)
+				local t2 = (-b - sqrtt(discriminant)) / (2 * a)
+				local t = minn(t1, t2)
 				return t > 0 and t
 			end
 		end
 	else
-		local d2 = math.sqrt((startPath.x - startPos.x) ^ 2 + (startPath.z - startPos.z) ^ 2)
+		local d2 = sqrtt((startPath.x - startPos.x) ^ 2 + (startPath.z - startPos.z) ^ 2)
 		if d2 < d1 then
 			v1.x, v1.y = (v1.x / d1) * d2, (v1.y / d1) * d2
 			if (startPath.x - (startPos.x + v1.x)) ^ 2 + (startPath.z - (startPos.z + v1.y)) < (self:GetHitBox(unit) + width) ^ 2 then
