@@ -1,5 +1,6 @@
---last update: Improve Target Selector, Lux Patch 8.9 Update, Few Improves
+--last update: added damageLib support,
 
+require ('damageLib\\damageLib')
 require 'GeometryLib'
 require 'FF15menu'
 Annie = {}
@@ -345,7 +346,7 @@ function Brand:Combo()
 		self:CastE(self.target)
 	end
 	if menu.combosettings.user:get() and self.R.ready() and not menu.ultsettings[self.target.charName] then
-		local dmg = flor(Utils:GetDmg(self.target, "Q")) + flor(Utils:GetDmg(self.target, "W")) + flor(Utils:GetDmg(self.target, "E")) + flor(Utils:GetDmg(self.target, "R"))
+		local dmg = flor(GetSpellDamage(mh, self.target, SpellSlot.Q)) + flor(GetSpellDamage(mh, self.target, SpellSlot.W)) + flor(GetSpellDamage(mh, self.target, SpellSlot.E)) + flor(GetSpellDamage(mh, self.target, SpellSlot.R))
 		if self.target.health < dmg then
 			self:CastR(self.target)
 		end
@@ -387,9 +388,9 @@ end
 function Brand:KillSteal()
 	for k, enemy in pairs(ObjectManager:GetEnemyHeroes()) do
 		if Utils:ValidTarget(enemy) and Utils:GetDistance(enemy, mh) < self.Q.range then
-			local qdmg = Utils:GetDmg(enemy, "Q")
-			local wdmg = Utils:GetDmg(enemy, "W")
-			local edmg = Utils:GetDmg(enemy, "E")
+			local qdmg = GetSpellDamage(mh, enemy, SpellSlot.Q)
+			local wdmg = GetSpellDamage(mh, enemy, SpellSlot.W)
+			local edmg = GetSpellDamage(mh, enemy, SpellSlot.E)
 			local idmg = Utils:GetDmg(enemy, "Ignite")
 			if menu.killstealsettings.useq:get() and self.Q.ready() and enemy.health < qdmg then
 				self:CastQ(enemy)
@@ -694,7 +695,7 @@ function Annie:Combo()
 		self:CastW(self.target)
 	end
 	if menu.combosettings.user:get() and self.R.ready() and not menu.ultsettings[self.target.charName] then
-		local dmg = flor(Utils:GetDmg(self.target, "Q")) + flor(Utils:GetDmg(self.target, "W")) + flor(Utils:GetDmg(self.target, "R"))
+		local dmg = flor(GetSpellDamage(mh, self.target, SpellSlot.Q)) + flor(GetSpellDamage(mh, self.target, SpellSlot.W)) + flor(GetSpellDamage(mh, self.target, SpellSlot.R))
 		if self.target.health < dmg then
 			self:CastR(self.target)
 		end
@@ -730,8 +731,8 @@ end
 function Annie:KillSteal()
 	for k, enemy in pairs(ObjectManager:GetEnemyHeroes()) do
 		if Utils:ValidTarget(enemy) and Utils:GetDistance(enemy, mh) < self.Q.range then
-			local qdmg = Utils:GetDmg(enemy, "Q")
-			local wdmg = Utils:GetDmg(enemy, "W")
+			local qdmg = GetSpellDamage(mh, enemy, SpellSlot.Q)
+			local wdmg = GetSpellDamage(mh, enemy, SpellSlot.W)
 			local idmg = Utils:GetDmg(enemy, "Ignite")
 			if menu.killstealsettings.useq:get() and self.Q.ready() and enemy.health < qdmg then
 				self:CastQ(enemy)
@@ -944,7 +945,7 @@ function Blitzcrank:Combo()
 		self:CastE(self.target)
 	end
 	if menu.combosettings.user:get() and self.R.ready() and not menu.ultsettings[self.target.charName] then
-		local dmg = flor(Utils:GetDmg(self.target, "Q")) + flor(Utils:GetDmg(self.target, "R"))
+		local dmg = flor(GetSpellDamage(mh, self.target, SpellSlot.Q)) + flor(GetSpellDamage(mh, self.target, SpellSlot.R))
 		if self.target.health < dmg then
 			self:CastR(self.target)
 		end
@@ -980,8 +981,8 @@ end
 function Blitzcrank:KillSteal()
 	for k, enemy in pairs(ObjectManager:GetEnemyHeroes()) do
 		if Utils:ValidTarget(enemy) and Utils:GetDistance(enemy, mh) < self.Q.range then
-			local qdmg = Utils:GetDmg(enemy, "Q")
-			local rdmg = Utils:GetDmg(enemy, "R")
+			local qdmg = GetSpellDamage(mh, enemy, SpellSlot.Q)
+			local rdmg = GetSpellDamage(mh, enemy, SpellSlot.R)
 			local idmg = Utils:GetDmg(enemy, "Ignite")
 			if menu.killstealsettings.useq:get() and self.Q.ready() and enemy.health < qdmg then
 				self:CastQ(enemy)
@@ -1210,7 +1211,7 @@ function Syndra:Combo()
 		self:CastE(self.target)
 	end
 	if menu.combosettings.user:get() and self.R.ready() and not menu.ultsettings[self.target.charName] then
-		local dmg = flor(Utils:GetDmg(self.target, "Q")) + flor(Utils:GetDmg(self.target, "W")) + flor(Utils:GetDmg(self.target, "E")) + flor(Utils:GetDmg(self.target, "R"))
+		local dmg = flor(GetSpellDamage(mh, self.target, SpellSlot.Q)) + flor(GetSpellDamage(mh, self.target, SpellSlot.W)) + flor(GetSpellDamage(mh, self.target, SpellSlot.E)) + flor(GetSpellDamage(mh, self.target, SpellSlot.R))
 		if self.target.health < dmg then
 			self:CastR(self.target)
 		end
@@ -1255,9 +1256,9 @@ end
 function Syndra:KillSteal()
 	for k, enemy in pairs(ObjectManager:GetEnemyHeroes()) do
 		if Utils:ValidTarget(enemy) and Utils:GetDistance(enemy, mh) < self.Q.range then
-			local qdmg = Utils:GetDmg(enemy, "Q")
-			local wdmg = Utils:GetDmg(enemy, "W")
-			local rdmg = Utils:GetDmg(enemy, "R")
+			local qdmg = GetSpellDamage(mh, enemy, SpellSlot.Q)
+			local wdmg = GetSpellDamage(mh, enemy, SpellSlot.W)
+			local rdmg = GetSpellDamage(mh, enemy, SpellSlot.R)
 			local idmg = Utils:GetDmg(enemy, "Ignite")
 			if menu.killstealsettings.useq:get() and self.Q.ready() and enemy.health < qdmg then
 				self:CastQ(enemy)
@@ -1649,6 +1650,7 @@ end
 
 function Lux:Combo()
 	if not Utils:ValidTarget(self.target) then return end
+	print(GetSpellDamage(mh, self.target, SpellSlot.R))
 	if menu.combosettings.usee:get() and self.E.ready() then
 		self:CastE(self.target)
 	end
@@ -1659,7 +1661,7 @@ function Lux:Combo()
 		self:CastW()
 	end
 	if menu.combosettings.user:get() and self.R.ready() and not menu.ultsettings[self.target.charName] then
-		local dmg = flor(Utils:GetDmg(self.target, "Q")) + flor(Utils:GetDmg(self.target, "E")) + flor(Utils:GetDmg(self.target, "R"))
+		local dmg = flor(GetSpellDamage(mh, self.target, SpellSlot.Q)) + flor(GetSpellDamage(mh, self.target, SpellSlot.E)) + flor(GetSpellDamage(mh, self.target, SpellSlot.R))
 		if self.target.health < dmg then
 			self:CastR(self.target)
 		end
@@ -1702,9 +1704,9 @@ end
 function Lux:KillSteal()
 	for k, enemy in pairs(ObjectManager:GetEnemyHeroes()) do
 		if Utils:ValidTarget(enemy) and Utils:GetDistance(enemy, mh) < self.R.range then
-			local qdmg = Utils:GetDmg(enemy, "Q")
-			local edmg = Utils:GetDmg(enemy, "E")
-			local rdmg = Utils:GetDmg(enemy, "R")
+			local qdmg = GetSpellDamage(mh, enemy, SpellSlot.Q)
+			local edmg = GetSpellDamage(mh, enemy, SpellSlot.E)
+			local rdmg = GetSpellDamage(mh, enemy, SpellSlot.R)
 			local idmg = Utils:GetDmg(enemy, "Ignite")
 			if menu.killstealsettings.useq:get() and self.Q.ready() and enemy.health < qdmg then
 				self:CastQ(enemy)
@@ -1936,7 +1938,7 @@ function Fizz:Combo()
 		self:CastE(self.target)
 	end
 	if menu.combosettings.user:get() and self.R.ready() and not menu.ultsettings[self.target.charName] then
-		local dmg = flor(Utils:GetDmg(self.target, "Q")) + flor(Utils:GetDmg(self.target, "W")) + flor(Utils:GetDmg(self.target, "E")) + flor(Utils:GetDmg(self.target, "R"))
+		local dmg = flor(GetSpellDamage(mh, self.target, SpellSlot.Q)) + flor(GetSpellDamage(mh, self.target, SpellSlot.W)) + flor(GetSpellDamage(mh, self.target, SpellSlot.E)) + flor(GetSpellDamage(mh, self.target, SpellSlot.R))
 		if self.target.health < dmg then
 			self:CastR(self.target)
 		end
@@ -1975,9 +1977,9 @@ end
 function Fizz:KillSteal()
 	for k, enemy in pairs(ObjectManager:GetEnemyHeroes()) do
 		if Utils:ValidTarget(enemy) and Utils:GetDistance(enemy, mh) < self.Q.range then
-			local qdmg = Utils:GetDmg(enemy, "Q")
-			local edmg = Utils:GetDmg(enemy, "E")
-			local rdmg = Utils:GetDmg(enemy, "R")
+			local qdmg = GetSpellDamage(mh, enemy, SpellSlot.Q)
+			local edmg = GetSpellDamage(mh, enemy, SpellSlot.E)
+			local rdmg = GetSpellDamage(mh, enemy, SpellSlot.R)
 			local idmg = Utils:GetDmg(enemy, "Ignite")
 			if menu.killstealsettings.useq:get() and self.Q.ready() and enemy.health < qdmg then
 				self:CastQ(enemy)
@@ -2045,97 +2047,8 @@ end
 ---------------------------------
 ---------------------------------
 function Utils:GetDmg(unit, spell)
-	if spell == "AD" then
-		return self:CalcPhysic(unit, mh.characterIntermediate.flatPhysicalDamageMod + mh.characterIntermediate.baseAttackDamage) or 0
-	end
 	if spell == "Ignite" then
 		return (50 + (20 * mh.experience.level)) or 0
-	end
-	if mh.charName == "Annie" then
-		if spell == "Q" and Annie.Q.ready() then
-			return self:CalcMagic(unit, (35 * mh.spellbook:Spell(Q).level + 45) + (mh.characterIntermediate.baseAbilityDamage * 0.8)) or 0
-		elseif spell == "W" and Annie.W.ready() then
-			return self:CalcMagic(unit, (45 * mh.spellbook:Spell(W).level + 25) + (mh.characterIntermediate.baseAbilityDamage * 0.85)) or 0
-		elseif spell == "R" and Annie.R.ready() then
-			return self:CalcMagic(unit, (125 * mh.spellbook:Spell(R).level + 25) + (mh.characterIntermediate.baseAbilityDamage * 0.65)) or 0
-		end
-	elseif mh.charName == "Brand" then
-		if spell == "Q" and Brand.Q.ready() then
-			return self:CalcMagic(unit, (30 * mh.spellbook:Spell(Q).level + 50) + (mh.characterIntermediate.baseAbilityDamage * 0.55)) or 0
-		elseif spell == "W" and Brand.W.ready() then
-			if Brand.FiredEnemies[unit.networkId] then
-				return self:CalcMagic(unit, (55 * mh.spellbook:Spell(W).level + 40) + (mh.characterIntermediate.baseAbilityDamage * 0.75)) or 0
-			else
-				return self:CalcMagic(unit, (45 * mh.spellbook:Spell(W).level + 30) + (mh.characterIntermediate.baseAbilityDamage * 0.6)) or 0
-			end
-		elseif spell == "E" and Brand.E.ready() then
-			return self:CalcMagic(unit, (20 * mh.spellbook:Spell(E).level + 50) + (mh.characterIntermediate.baseAbilityDamage * 0.35)) or 0
-		elseif spell == "R" and Brand.R.ready() then
-			return self:CalcMagic(unit, (100 * mh.spellbook:Spell(R).level) + (mh.characterIntermediate.baseAbilityDamage * 0.25)) * Brand:GetBounces(unit) or 0
-		end
-	elseif mh.charName == "Blitzcrank" then
-		if spell == "Q" and Blitzcrank.Q.ready() then
-			return self:CalcMagic(unit, (({80, 135, 190, 245, 300})[mh.spellbook:Spell(Q).level]) + (mh.characterIntermediate.baseAbilityDamage)) or 0
-		elseif spell == "E" and Blitzcrank.E.ready() then
-			return self:CalcPhysic(unit, mh.characterIntermediate.flatPhysicalDamageMod + mh.characterIntermediate.baseAttackDamage) or 0
-		elseif spell == "R" and Blitzcrank.R.ready() then
-			return self:CalcMagic(unit, (125 * mh.spellbook:Spell(R).level + 125) + (mh.characterIntermediate.baseAbilityDamage)) or 0
-		end
-	elseif mh.charName == "Syndra" then
-		if spell == "Q" and Syndra.Q.ready() then
-			if mh.spellbook:Spell(Q).level > 0 and mh.spellbook:Spell(Q).level < 5 then
-				return self:CalcMagic(unit, (45 * mh.spellbook:Spell(Q).level + 5) + (mh.characterIntermediate.baseAbilityDamage * 0.65)) or 0
-			elseif mh:GetSpellData(Q).level == 5 then
-				local dd = (45 * mh.spellbook:Spell(Q).level + 5) + (mh.characterIntermediate.baseAbilityDamage * 0.65) * 0.15
-				local dd2 = (45 * mh.spellbook:Spell(Q).level + 5) + (mh.characterIntermediate.baseAbilityDamage * 0.65) + dd
-				return self:CalcMagic(unit, dd2) or 0
-			end
-		elseif spell == "W" and Syndra.W.ready() then
-			return self:CalcMagic(unit, (40 * mh.spellbook:Spell(W).level + 30) + (mh.characterIntermediate.baseAbilityDamage * 0.7)) or 0
-		elseif spell == "E" and Syndra.E.ready() then
-			return self:CalcMagic(unit, (45 * mh.spellbook:Spell(E).level + 25) + (mh.characterIntermediate.baseAbilityDamage * 0.6)) or 0
-		elseif spell == "R" and Syndra.R.ready() then
-			local dm = flor((45 * mh.spellbook:Spell(R).level + 45 + (mh.characterIntermediate.baseAbilityDamage * 0.2)) * Syndra:OrbCount()+3)
-			local dm2 = flor(135 * mh.spellbook:Spell(R).level + 135 + (mh.characterIntermediate.baseAbilityDamage * 0.6) + dm)
-			return self:CalcMagic(unit, dm2) or 0
-		end
-	elseif mh.charName == "Lux" then
-		if spell == "Q" and Lux.Q.ready() then
-			return self:CalcMagic(unit, (45 * mh.spellbook:Spell(Q).level + 25) + (mh.characterIntermediate.baseAbilityDamage * 0.7)) or 0
-		elseif spell == "E" and Lux.E.ready() then
-			return self:CalcMagic(unit, (45 * mh.spellbook:Spell(E).level + 15) + (mh.characterIntermediate.baseAbilityDamage * 0.6)) or 0
-		elseif spell == "R" and Lux.R.ready() then
-			if unit.buffManager:HasBuff("luxilluminatingfraulein") then
-				return self:CalcMagic(unit, (100 * mh.spellbook:Spell(R).level + 210) + (mh.characterIntermediate.baseAbilityDamage * 0.95)) or 0
-			else
-				return self:CalcMagic(unit, (100 * mh.spellbook:Spell(R).level + 200) + (mh.characterIntermediate.baseAbilityDamage * 0.75)) or 0
-			end
-		end
-	elseif mh.charName == "Fizz" then
-		if spell == "Q" and Fizz.Q.ready() then
-			if unit.buffManager:HasBuff("fizzrbomb") then
-				local qdm = {12, 30, 48, 66, 84}
-				return self:CalcMagic(unit, (qdm[mh.spellbook:Spell(Q).level]) + (mh.characterIntermediate.flatPhysicalDamageMod + mh.characterIntermediate.baseAttackDamage * 1.2) + (mh.characterIntermediate.baseAbilityDamage * 0.432))
-			else
-				local qdm = {10, 25, 40, 55, 70}
-				return self:CalcMagic(unit, (qdm[mh.spellbook:Spell(Q).level]) + (mh.characterIntermediate.flatPhysicalDamageMod + mh.characterIntermediate.baseAttackDamage) + (mh.characterIntermediate.baseAbilityDamage * 0.35))
-			end
-		elseif spell == "W" and Fizz.E.ready() then
-			if unit.buffManager:HasBuff("fizzrbomb") then
-				return self:CalcMagic(unit, (12 * mh.spellbook:Spell(W).level + 12) + (mh.characterIntermediate.baseAbilityDamage * 0.54))
-			else
-				return self:CalcMagic(unit, (10 * mh.spellbook:Spell(W).level + 10) + (mh.characterIntermediate.baseAbilityDamage * 0.45))
-			end
-		elseif spell == "E" and Fizz.E.ready() then
-			if unit.buffManager:HasBuff("fizzrbomb") then
-				local edmg = {84, 144, 204, 264, 324}
-				return self:CalcMagic(unit, (edmg[mh.spellbook:Spell(E).level]) + (mh.characterIntermediate.baseAbilityDamage * 0.9))
-			else
-				return self:CalcMagic(unit, (50 * mh.spellbook:Spell(E).level + 20) + (mh.characterIntermediate.baseAbilityDamage * 0.75))
-			end
-		elseif spell == "R" and Fizz.R.ready() then
-			return self:CalcMagic(unit, (125 * mh.spellbook:Spell(R).level + 75) + (mh.characterIntermediate.baseAbilityDamage * 1))
-		end
 	end
 end
 
@@ -2311,7 +2224,7 @@ function Orbwalk:Orbwalk()
 		Target = Utils:GetTarget(mh.characterIntermediate.attackRange)
 	elseif IsKeyDown(0x43) then
 		local minion = Utils:GetMinion(mh.characterIntermediate.attackRange)
-		if minion and minion.health <= flor(Utils:GetDmg(minion, "AD")) then
+		if minion and minion.health <= flor(GetAutoAttackDamage(mh, minion)) then
 			Target = minion
 		else
 			Target = Utils:GetTarget(mh.characterIntermediate.attackRange)
