@@ -1,4 +1,4 @@
---last update: added damageLib support,
+--last update: added Morgana
 
 require ('damageLib\\damageLib')
 require 'GeometryLib'
@@ -9,11 +9,13 @@ Blitzcrank = {}
 Syndra = {}
 Lux = {}
 Fizz = {}
+Morgana = {}
 Orbwalk = {}
 Prediction = {}
 Utils = {}
 local mh = myHero
 local huge, flor, sqrtt, minn = math.huge, math.floor, math.sqrt, math.min
+local Enemies = ObjectManager:GetEnemyHeroes()
 local gapcloserspells = {
 		["Aatrox"]                      = {"Q"},
 		["Akali"]                       = {"R"},
@@ -124,6 +126,9 @@ function OnLoad()
 	elseif mh.charName == "Fizz" then
 		Fizz:Init()
 		PrintChat("<b><font color=\"#ff6600\">MasterSeries: </font></b><font color=\"#FFFFFF\"> Fizz Loaded. Welcome :)</font>")
+	elseif mh.charName == "Morgana" then
+		Morgana:Init()
+		PrintChat("<b><font color=\"#ff6600\">MasterSeries: </font></b><font color=\"#FFFFFF\"> Morgana Loaded. Welcome :)</font>")
 	end
 	Orbwalk:Init()
 end
@@ -165,12 +170,14 @@ function Brand:Menu()
 	menu.killstealsettings:checkbox("usee", "Use (E)", true)
 	menu.killstealsettings:checkbox("usei", "Use Ignite", true)
 	-------------
-	for k, enemy in pairs(ObjectManager:GetEnemyHeroes()) do
+	for i = 1, #Enemies do
+        local enemy = Enemies[i]
 		menu.ultsettings:checkbox(enemy.charName, "Disable for " .. enemy.charName, false)
 	end
 	-------------
 	menu.gapclosersettings:label("str", "Spells List:")
-	for i, enemy in ipairs(ObjectManager:GetEnemyHeroes()) do
+	for i = 1, #Enemies do
+        local enemy = Enemies[i]
 		local UnitGapcloserSpells = gapcloserspells[enemy.charName]
 		if UnitGapcloserSpells then
 			for i, slot in pairs(UnitGapcloserSpells) do
@@ -182,7 +189,8 @@ function Brand:Menu()
 	menu.gapclosersettings:checkbox("enable", "Enable Anti-Gaploser", true)
 	-------------
 	menu.interruptsettings:label("str", "Spells List:")
-	for i, enemy in ipairs(ObjectManager:GetEnemyHeroes()) do
+	for i = 1, #Enemies do
+        local enemy = Enemies[i]
 		local UnitInterruptSpells = chanellingspells[enemy.charName]
 		if UnitInterruptSpells then
 			for i, slot in pairs(UnitInterruptSpells) do
@@ -386,7 +394,8 @@ function Brand:Clear()
 end
 
 function Brand:KillSteal()
-	for k, enemy in pairs(ObjectManager:GetEnemyHeroes()) do
+	for i = 1, #Enemies do
+        local enemy = Enemies[i]
 		if Utils:ValidTarget(enemy) and Utils:GetDistance(enemy, mh) < self.Q.range then
 			local qdmg = GetSpellDamage(mh, enemy, SpellSlot.Q)
 			local wdmg = GetSpellDamage(mh, enemy, SpellSlot.W)
@@ -507,12 +516,14 @@ function Annie:Menu()
 	menu.killstealsettings:checkbox("usew", "Use (W)", true)
 	menu.killstealsettings:checkbox("usei", "Use Ignite", true)
 	-------------
-	for k, enemy in pairs(ObjectManager:GetEnemyHeroes()) do
+	for i = 1, #Enemies do
+        local enemy = Enemies[i]
 		menu.ultsettings:checkbox(enemy.charName, "Disable for " .. enemy.charName, false)
 	end
 	-------------
 	menu.gapclosersettings:label("str", "Spells List:")
-	for i, enemy in ipairs(ObjectManager:GetEnemyHeroes()) do
+	for i = 1, #Enemies do
+        local enemy = Enemies[i]
 		local UnitGapcloserSpells = gapcloserspells[enemy.charName]
 		if UnitGapcloserSpells then
 			for i, slot in pairs(UnitGapcloserSpells) do
@@ -524,7 +535,8 @@ function Annie:Menu()
 	menu.gapclosersettings:checkbox("enable", "Enable Anti-Gaploser", true)
 	-------------
 	menu.interruptsettings:label("str", "Spells List:")
-	for i, enemy in ipairs(ObjectManager:GetEnemyHeroes()) do
+	for i = 1, #Enemies do
+        local enemy = Enemies[i]
 		local UnitInterruptSpells = chanellingspells[enemy.charName]
 		if UnitInterruptSpells then
 			for i, slot in pairs(UnitInterruptSpells) do
@@ -729,7 +741,8 @@ function Annie:Clear()
 end
 
 function Annie:KillSteal()
-	for k, enemy in pairs(ObjectManager:GetEnemyHeroes()) do
+	for i = 1, #Enemies do
+        local enemy = Enemies[i]
 		if Utils:ValidTarget(enemy) and Utils:GetDistance(enemy, mh) < self.Q.range then
 			local qdmg = GetSpellDamage(mh, enemy, SpellSlot.Q)
 			local wdmg = GetSpellDamage(mh, enemy, SpellSlot.W)
@@ -817,12 +830,14 @@ function Blitzcrank:Menu()
 	menu.killstealsettings:checkbox("user", "Use (R)", true)
 	menu.killstealsettings:checkbox("usei", "Use Ignite", true)
 	-------------
-	for k, enemy in pairs(ObjectManager:GetEnemyHeroes()) do
+	for i = 1, #Enemies do
+        local enemy = Enemies[i]
 		menu.ultsettings:checkbox(enemy.charName, "Disable for " .. enemy.charName, false)
 	end
 	-------------
 	menu.interruptsettings:label("str", "Spells List:")
-	for i, enemy in ipairs(ObjectManager:GetEnemyHeroes()) do
+	for i = 1, #Enemies do
+        local enemy = Enemies[i]
 		local UnitInterruptSpells = chanellingspells[enemy.charName]
 		if UnitInterruptSpells then
 			for i, slot in pairs(UnitInterruptSpells) do
@@ -979,7 +994,8 @@ function Blitzcrank:Clear()
 end
 
 function Blitzcrank:KillSteal()
-	for k, enemy in pairs(ObjectManager:GetEnemyHeroes()) do
+	for i = 1, #Enemies do
+        local enemy = Enemies[i]
 		if Utils:ValidTarget(enemy) and Utils:GetDistance(enemy, mh) < self.Q.range then
 			local qdmg = GetSpellDamage(mh, enemy, SpellSlot.Q)
 			local rdmg = GetSpellDamage(mh, enemy, SpellSlot.R)
@@ -1069,12 +1085,14 @@ function Syndra:Menu()
 	menu.killstealsettings:checkbox("user", "Use (R)", true)
 	menu.killstealsettings:checkbox("usei", "Use Ignite", true)
 	-------------
-	for k, enemy in pairs(ObjectManager:GetEnemyHeroes()) do
+	for i = 1, #Enemies do
+        local enemy = Enemies[i]
 		menu.ultsettings:checkbox(enemy.charName, "Disable for " .. enemy.charName, false)
 	end
 	-------------
 	menu.gapclosersettings:label("str", "Spells List:")
-	for i, enemy in ipairs(ObjectManager:GetEnemyHeroes()) do
+	for i = 1, #Enemies do
+        local enemy = Enemies[i]
 		local UnitGapcloserSpells = gapcloserspells[enemy.charName]
 		if UnitGapcloserSpells then
 			for i, slot in pairs(UnitGapcloserSpells) do
@@ -1086,7 +1104,8 @@ function Syndra:Menu()
 	menu.gapclosersettings:checkbox("enable", "Enable Anti-Gaploser", true)
 	-------------
 	menu.interruptsettings:label("str", "Spells List:")
-	for i, enemy in ipairs(ObjectManager:GetEnemyHeroes()) do
+	for i = 1, #Enemies do
+        local enemy = Enemies[i]
 		local UnitInterruptSpells = chanellingspells[enemy.charName]
 		if UnitInterruptSpells then
 			for i, slot in pairs(UnitInterruptSpells) do
@@ -1254,7 +1273,8 @@ function Syndra:Clear()
 end
 
 function Syndra:KillSteal()
-	for k, enemy in pairs(ObjectManager:GetEnemyHeroes()) do
+	for i = 1, #Enemies do
+        local enemy = Enemies[i]
 		if Utils:ValidTarget(enemy) and Utils:GetDistance(enemy, mh) < self.Q.range then
 			local qdmg = GetSpellDamage(mh, enemy, SpellSlot.Q)
 			local wdmg = GetSpellDamage(mh, enemy, SpellSlot.W)
@@ -1543,12 +1563,14 @@ function Lux:Menu()
 	menu.killstealsettings:checkbox("user", "Use (R)", true)
 	menu.killstealsettings:checkbox("usei", "Use Ignite", true)
 	-------------
-	for k, enemy in pairs(ObjectManager:GetEnemyHeroes()) do
+	for i = 1, #Enemies do
+        local enemy = Enemies[i]
 		menu.ultsettings:checkbox(enemy.charName, "Disable for " .. enemy.charName, false)
 	end
 	-------------
 	menu.gapclosersettings:label("str", "Spells List:")
-	for i, enemy in ipairs(ObjectManager:GetEnemyHeroes()) do
+	for i = 1, #Enemies do
+        local enemy = Enemies[i]
 		local UnitGapcloserSpells = gapcloserspells[enemy.charName]
 		if UnitGapcloserSpells then
 			for i, slot in pairs(UnitGapcloserSpells) do
@@ -1666,7 +1688,8 @@ function Lux:Combo()
 			self:CastR(self.target)
 		end
 	end
-	for k, enemy in pairs(ObjectManager:GetEnemyHeroes()) do
+	for i = 1, #Enemies do
+        local enemy = Enemies[i]
 		if Utils:ValidTarget(enemy, 1000) then
 			if self.eobject and Utils:GetDistance(self.eobject, enemy) <= self.E.pred.radius then
 				mh.spellbook:CastSpell(2, mh.networkId)
@@ -1702,7 +1725,8 @@ function Lux:Clear()
 end
 
 function Lux:KillSteal()
-	for k, enemy in pairs(ObjectManager:GetEnemyHeroes()) do
+	for i = 1, #Enemies do
+        local enemy = Enemies[i]
 		if Utils:ValidTarget(enemy) and Utils:GetDistance(enemy, mh) < self.R.range then
 			local qdmg = GetSpellDamage(mh, enemy, SpellSlot.Q)
 			local edmg = GetSpellDamage(mh, enemy, SpellSlot.E)
@@ -1847,7 +1871,8 @@ function Fizz:Menu()
 	menu.killstealsettings:checkbox("user", "Use (R)", true)
 	menu.killstealsettings:checkbox("usei", "Use Ignite", true)
 	-------------
-	for k, enemy in pairs(ObjectManager:GetEnemyHeroes()) do
+	for i = 1, #Enemies do
+        local enemy = Enemies[i]
 		menu.ultsettings:checkbox(enemy.charName, "Disable for " .. enemy.charName, false)
 	end
 	-------------
@@ -1975,7 +2000,8 @@ function Fizz:Clear()
 end
 
 function Fizz:KillSteal()
-	for k, enemy in pairs(ObjectManager:GetEnemyHeroes()) do
+	for i = 1, #Enemies do
+        local enemy = Enemies[i]
 		if Utils:ValidTarget(enemy) and Utils:GetDistance(enemy, mh) < self.Q.range then
 			local qdmg = GetSpellDamage(mh, enemy, SpellSlot.Q)
 			local edmg = GetSpellDamage(mh, enemy, SpellSlot.E)
@@ -2043,6 +2069,294 @@ end
 
 ---------------------------------
 ---------------------------------
+---------- MORGANA --------------
+---------------------------------
+---------------------------------
+function Morgana:Menu()
+	menu = Menu("MasterSeries", "MasterSeries-Morgana")
+	menu:sub("combosettings", "Combo Settings")
+	menu:sub("harasssettings", "Harass Settings")
+	menu:sub("clearsettings", "Clear Settings")
+	menu:sub("killstealsettings", "KillSteal Settings")
+	menu:sub("ultsettings", "Ultimate Black List")
+	menu:sub("gapclosersettings", "Anti Gap-Closer Settings")
+	menu:sub("interruptsettings", "Auto-Interrupt Settings")
+	menu:sub("drawsettings", "Draw Settings")
+	-------------
+	menu.combosettings:checkbox("useq", "Use (Q)", true)
+	menu.combosettings:checkbox("usew", "Use (W)", true)
+	menu.combosettings:checkbox("usee", "Use (E)", true)
+	menu.combosettings:checkbox("user", "Use (R)", true)
+	menu.combosettings:slider("user2", "Enemy Count To Use 'R'", 1, 5, 4, 1)
+	menu.combosettings:key("combokey", "Combo Key:", 32)
+	-------------
+	menu.harasssettings:checkbox("useq", "Use (Q)", true)
+	menu.harasssettings:checkbox("usew", "Use (W)", true)
+	menu.harasssettings:key("harasskey", "Harass Key:", 67)
+	------------
+	menu.clearsettings:checkbox("useq", "Use (Q)", true)
+	menu.clearsettings:checkbox("usew", "Use (W)", true)
+	menu.clearsettings:key("clearkey", "Clear Key:", 86)
+	-------------
+	menu.killstealsettings:checkbox("useq", "Use (Q)", true)
+	menu.killstealsettings:checkbox("usew", "Use (W)", true)
+	menu.killstealsettings:checkbox("user", "Use (R)", true)
+	menu.killstealsettings:checkbox("usei", "Use Ignite", true)
+	-------------
+	for i = 1, #Enemies do
+        local enemy = Enemies[i]
+		menu.ultsettings:checkbox(enemy.charName, "Disable for " .. enemy.charName, false)
+	end
+	-------------
+	menu.gapclosersettings:label("str", "Spells List:")
+	for i = 1, #Enemies do
+        local enemy = Enemies[i]
+		local UnitGapcloserSpells = gapcloserspells[enemy.charName]
+		if UnitGapcloserSpells then
+			for i, slot in pairs(UnitGapcloserSpells) do
+				menu.gapclosersettings:checkbox(enemy.charName.."."..slot, "GapCloser "..enemy.charName.." "..slot, true)
+			end
+		end
+	end
+	menu.gapclosersettings:label("str2", "-----------")
+	menu.gapclosersettings:checkbox("enable", "Enable Anti-Gaploser", true)
+	-------------
+	menu.interruptsettings:label("str", "Spells List:")
+	for i = 1, #Enemies do
+        local enemy = Enemies[i]
+		local UnitInterruptSpells = chanellingspells[enemy.charName]
+		if UnitInterruptSpells then
+			for i, slot in pairs(UnitInterruptSpells) do
+				menu.interruptsettings:checkbox(enemy.charName.."."..slot, "Interrupt "..enemy.charName.." "..slot, true)
+			end
+		end
+	end
+	menu.interruptsettings:label("str2", "-----------")
+	menu.interruptsettings:checkbox("enable", "Enable Auto-Interrupt", true)
+	-------------
+	menu.drawsettings:checkbox("drawq", "Draw (Q) Circle", true)
+	menu.drawsettings:checkbox("draww", "Draw (W) Circle", true)
+	menu.drawsettings:checkbox("drawe", "Draw (E) Circle", true)
+	menu.drawsettings:checkbox("drawr", "Draw (R) Circle", true)
+end
+
+function Morgana:Init()
+	self.target, self.tsrange = nil, 650
+	self.I = {
+		slot = mh.spellbook:Spell(4).name:find("SummonerDot") and 4 or mh.spellbook:Spell(5).name:find("SummonerDot") and 5 or nil,
+		ready = function() return self.I.slot and mh.spellbook:CanUseSpell(self.I.slot) == 0  or false end,
+		range = 600,
+	}
+	self.Q = {
+		slot = mh.spellbook:Spell(Q),
+		ready = function() return mh.spellbook:CanUseSpell(0) == 0 end,
+		range = 1200,
+		pred = {
+			delay = 0.25,
+			radius = 60,
+			speed = 1200,
+			collision = true,
+			},
+	}
+	self.W = {
+		slot = mh.spellbook:Spell(W),
+		ready = function() return mh.spellbook:CanUseSpell(1) == 0 end,
+		range = 925,
+		pred = {
+			delay = 0.25,
+			radius = 325,
+			speed = huge,
+			collision = false,
+			},
+	}
+	self.E = {
+		slot = mh.spellbook:Spell(E),
+		ready = function() return mh.spellbook:CanUseSpell(2) == 0 end,
+		range = 800,
+	}
+	self.R = {
+		slot = mh.spellbook:Spell(R),
+		ready = function() return mh.spellbook:CanUseSpell(3) == 0 end,
+		range = 625,
+	}
+	AddEvent(Events.OnProcessSpell, function(unit, spell) self:OnProcessSpell(unit, spell) end)
+	AddEvent(Events.OnTick, function() self:OnTick() end)
+	AddEvent(Events.OnDraw, function() self:OnDraw() end)
+	self:Menu()
+end
+
+function Morgana:OnTick()
+	if self.Q.ready() then
+		self.tsrange = self.Q.range
+	elseif not self.Q.ready() and self.W.ready() then
+		self.tsrange = self.W.range
+	end
+	self.target = Utils:GetTarget(self.tsrange)
+	if menu.combosettings.combokey:get() then 
+		Orbwalk:Orbwalk()
+		self:Combo()
+	end
+	if menu.harasssettings.harasskey:get() then 
+		Orbwalk:Orbwalk()
+		self:Harass()
+	end
+	if menu.clearsettings.clearkey:get() then 
+		Orbwalk:Orbwalk()
+		self:Clear()
+	end
+	self:KillSteal()
+end
+
+function Morgana:OnProcessSpell(unit, spell)
+	if menu.gapclosersettings.enable:get() then
+		if unit and unit.team ~= mh.team and unit.type == mh.type and spell then
+			if Utils:ValidTarget(unit, self.Q.range) then
+				if self.passive and self.Q.ready() then
+					local UnitGapcloserSpells = gapcloserspells[unit.charName]
+					if UnitGapcloserSpells then
+						for _, slot in pairs(UnitGapcloserSpells) do
+							local str = ("unit.charName" .. "." .. slot)
+							if spell.spellSlot == Utils:StringToSlot(slot) and menu.gapclosersettings.str:get() then 
+								if spell.target and spell.target == mh then
+									self:CastQ(unit)
+								elseif not spell.target then
+									local endPos1 = Vector(unit) + 300 * (Vector(spell.endPos) - Vector(unit)):normalized()
+									local endPos2 = Vector(unit) + 100 * (Vector(spell.endPos) - Vector(unit)):normalized()
+									if (Utils:GetDistance(mh, unit) > Utils:GetDistance(mh, endPos1) or Utils:GetDistance(mh, unit) > Utils:GetDistance(mh, endPos2)) then
+										self:CastQ(unit)
+									end
+								end
+							end
+						end
+					end
+				end
+			end
+		end
+    end
+	if menu.interruptsettings.enable:get() then
+		if unit and unit.team ~= mh.team and unit.type == mh.type and spell then
+			if Utils:ValidTarget(unit, self.Q.range) then
+				if self.passive and self.Q.ready() then
+					local UnitInterruptSpells = chanellingspells[unit.charName]
+					if UnitInterruptSpells then
+						for _, slot in pairs(UnitInterruptSpells) do
+							local str = ("unit.charName" .. "." .. slot)
+							if spell.spellSlot == Utils:StringToSlot(slot) and menu.interruptsettings.str:get() then 
+								self:CastQ(unit)
+							end
+						end
+					end
+				end
+			end
+		end
+    end
+end
+
+function Morgana:Combo()
+	if not Utils:ValidTarget(self.target) then return end
+	if menu.combosettings.useq:get() and self.Q.ready() then
+		self:CastQ(self.target)
+	end
+	if menu.combosettings.usew:get() and self.W.ready() then
+		self:CastW(self.target)
+	end
+	if menu.combosettings.user:get() and self.R.ready() and not menu.ultsettings[self.target.charName] and Utils:EnemyCount(mh, self.R.range) >= menu.combosettings.user2:get() then
+		self:CastR(self.target)
+	end
+end
+
+function Morgana:Harass()
+	if not Utils:ValidTarget(self.target) then return end
+	if menu.harasssettings.useq:get() and self.Q.ready() then
+		self:CastQ(self.target)
+	end
+	if menu.harasssettings.usew:get() and self.W.ready() then
+		self:CastW(self.target)
+	end
+end
+
+function Morgana:Clear()
+	for i, minion in pairs(ObjectManager:GetEnemyMinions()) do
+		if Utils:ValidTarget(minion, 1300) then
+			if menu.clearsettings.useq:get() and Utils:GetDistance(minion, mh) <= self.Q.range then
+				self:CastQ(minion)
+			end
+			if menu.clearsettings.usew:get() and Utils:GetDistance(minion, mh) <= self.W.range then
+				local Pos, Hit = Utils:GetBestCircleFarmPosition(self.W.range, self.W.pred.radius, ObjectManager:GetEnemyMinions())
+				if Pos and Hit >= 2 and Utils:GetDistance(Pos) < self.W.range then 
+					mh.spellbook:CastSpell(1, D3DXVECTOR3(Pos.x, Pos.y, Pos.z))	
+				end
+			end
+		end
+	end
+end
+
+function Morgana:KillSteal()
+	for i = 1, #Enemies do
+        local enemy = Enemies[i]
+		if Utils:ValidTarget(enemy) and Utils:GetDistance(enemy, mh) < self.Q.range then
+			local qdmg = GetSpellDamage(mh, enemy, SpellSlot.Q)
+			local wdmg = GetSpellDamage(mh, enemy, SpellSlot.W)
+			local rdmg = GetSpellDamage(mh, enemy, SpellSlot.R)
+			local idmg = Utils:GetDmg(enemy, "Ignite")
+			if menu.killstealsettings.useq:get() and self.Q.ready() and enemy.health < qdmg then
+				self:CastQ(enemy)
+			elseif menu.killstealsettings.usew:get() and self.W.ready() and enemy.health < wdmg then
+				self:CastW(enemy)
+			elseif menu.killstealsettings.user:get() and self.R.ready() and enemy.health < rdmg then
+				self:CastR(enemy)
+			elseif menu.killstealsettings.usei:get() and self.I.ready() and enemy.health < idmg and Utils:GetDistance(enemy, mh) < self.I.range then
+				mh.spellbook:CastSpell(self.I.slot, enemy.networkId)	
+			end
+		end
+	end
+end
+
+function Morgana:CastQ(unit)
+	if Utils:ValidTarget(unit) and Utils:GetDistance(mh, unit) <= self.Q.range then
+		local x, y = Prediction:prediction(unit, self.Q.pred.delay, self.Q.pred.speed, self.Q.range, self.Q.pred.radius, self.Q.pred.collision)
+		if x and y >= 2 then
+			mh.spellbook:CastSpell(0, D3DXVECTOR3(x.x, x.y, x.z))			
+		end	
+	end
+end
+
+function Morgana:CastW(unit)
+	if Utils:ValidTarget(unit) and Utils:GetDistance(mh, unit) <= self.W.range then
+		local x, y = Prediction:prediction(unit, self.W.pred.delay, self.W.pred.speed, self.W.range, self.W.pred.radius, self.W.pred.collision)
+		if x and y >= 2 then
+			mh.spellbook:CastSpell(1, D3DXVECTOR3(x.x, x.y, x.z))			
+		end				
+	end
+end
+
+function Morgana:CastE(unit)
+	mh.spellbook:CastSpell(2, unit.networkId)			
+end
+
+function Morgana:CastR(unit)
+	mh.spellbook:CastSpell(3, mh.networkId)	
+end
+
+function Morgana:OnDraw()
+	if menu.drawsettings.drawq:get() and self.Q.ready() then
+		DrawHandler:Circle3D(myHero.position, self.Q.range, 0xff00ff00)
+	end
+	if menu.drawsettings.drawq:get() and self.W.ready() then
+		DrawHandler:Circle3D(myHero.position, self.W.range, 0xff00ff00)
+	end
+	if menu.drawsettings.drawq:get() and self.E.ready() then
+		DrawHandler:Circle3D(myHero.position, self.E.range, 0xff00ff00)
+	end
+	if menu.drawsettings.drawr:get() and self.R.ready() then
+		DrawHandler:Circle3D(myHero.position, self.R.range, 0xff00ff00)
+	end
+end
+
+
+
+---------------------------------
+---------------------------------
 ----------- UTILS ---------------
 ---------------------------------
 ---------------------------------
@@ -2067,6 +2381,17 @@ function Utils:CalcPhysic(unit, dmg)
 	if baseArmor<Lethality then return dmg end
 	baseArmor = baseArmor - Lethality
 	return dmg * (100 / (100 + (baseArmor - (armorpenprecent*baseArmor) / 100)))
+end
+
+function Utils:EnemyCount(point, range)
+	local x = 0
+	for i = 1, #Enemies do
+        local target = Enemies[i]
+		if Utils:ValidTarget(target) and Utils:GetDistance(point, target) <= range then
+			x = x+1
+		end
+	end
+	return x
 end
 
 function Utils:GetDistanceSqr(p1, p2)
@@ -2099,7 +2424,8 @@ function Utils:GetTarget(range)
 		for i,n in pairs(p4) do if n == charName then return 1 end end 
 		return .5
 	end
-	for k, v in pairs(ObjectManager:GetEnemyHeroes()) do
+	for i = 1, #Enemies do
+        local v = Enemies[i]
 		if self:ValidTarget(v, range) and self:GetDistance(v, mh) < range then
 			local prior = 100 / Priority(v.charName)
 			local heroValue = v.health / prior
