@@ -1,4 +1,4 @@
---last update: added Morgana
+--last update: fixed bug in auto interrupt & anti gapcloser, Morgana added auto shield(addd more spells list in future)
 
 require ('damageLib\\damageLib')
 require 'GeometryLib'
@@ -302,8 +302,7 @@ function Brand:OnProcessSpell(unit, spell)
 					local UnitGapcloserSpells = gapcloserspells[unit.charName]
 					if UnitGapcloserSpells then
 						for _, slot in pairs(UnitGapcloserSpells) do
-							local str = ("unit.charName" .. "." .. slot)
-							if spell.spellSlot == Utils:StringToSlot(slot) and menu.gapclosersettings.str:get() then 
+							if spell.spellSlot == Utils:StringToSlot(slot) and menu.gapclosersettings[unit.charName .. "." .. slot]:get() then 
 								if spell.target and spell.target == mh then
 									self:CastE(unit)
 									mh.spellbook:CastSpell(0, D3DXVECTOR3(unit.x, unit.y, unit.z))	
@@ -329,8 +328,7 @@ function Brand:OnProcessSpell(unit, spell)
 					local UnitInterruptSpells = chanellingspells[unit.charName]
 					if UnitInterruptSpells then
 						for _, slot in pairs(UnitInterruptSpells) do
-							local str = ("unit.charName" .. "." .. slot)
-							if spell.spellSlot == Utils:StringToSlot(slot) and menu.interruptsettings.str:get() then 
+							if spell.spellSlot == Utils:StringToSlot(slot) and menu.interruptsettings[unit.charName .. "." .. slot]:get() then 
 								self:CastE(unit)
 								mh.spellbook:CastSpell(0, D3DXVECTOR3(unit.x, unit.y, unit.z))	
 							end
@@ -649,8 +647,7 @@ function Annie:OnProcessSpell(unit, spell)
 					local UnitGapcloserSpells = gapcloserspells[unit.charName]
 					if UnitGapcloserSpells then
 						for _, slot in pairs(UnitGapcloserSpells) do
-							local str = ("unit.charName" .. "." .. slot)
-							if spell.spellSlot == Utils:StringToSlot(slot) and menu.gapclosersettings.str:get() then 
+							if spell.spellSlot == Utils:StringToSlot(slot) and menu.gapclosersettings[unit.charName .. "." .. slot]:get() then 
 								if spell.target and spell.target == mh then
 									if self.Q.ready() then
 										self:CastQ(unit)
@@ -682,8 +679,7 @@ function Annie:OnProcessSpell(unit, spell)
 					local UnitInterruptSpells = chanellingspells[unit.charName]
 					if UnitInterruptSpells then
 						for _, slot in pairs(UnitInterruptSpells) do
-							local str = ("unit.charName" .. "." .. slot)
-							if spell.spellSlot == Utils:StringToSlot(slot) and menu.interruptsettings.str:get() then 
+							if spell.spellSlot == Utils:StringToSlot(slot) and menu.interruptsettings[unit.charName .. "." .. slot]:get() then 
 								if self.Q.ready() then
 									self:CastQ(unit)
 								elseif self.W.ready() then
@@ -932,8 +928,7 @@ function Blitzcrank:OnProcessSpell(unit, spell)
 					local UnitInterruptSpells = chanellingspells[unit.charName]
 					if UnitInterruptSpells then
 						for _, slot in pairs(UnitInterruptSpells) do
-							local str = ("unit.charName" .. "." .. slot)
-							if spell.spellSlot == Utils:StringToSlot(slot) and menu.interruptsettings.str:get() then 
+							if spell.spellSlot == Utils:StringToSlot(slot) and menu.interruptsettings[unit.charName .. "." .. slot]:get() then 
 								if self.R.ready() then
 									self:CastR(unit)
 								elseif self.Q.ready() then
@@ -1417,8 +1412,7 @@ function Syndra:OnProcessSpell(unit, spell)
 					local UnitGapcloserSpells = gapcloserspells[unit.charName]
 					if UnitGapcloserSpells then
 						for _, slot in pairs(UnitGapcloserSpells) do
-							local str = ("unit.charName" .. "." .. slot)
-							if spell.spellSlot == Utils:StringToSlot(slot) and menu.gapclosersettings.str:get() then 
+							if spell.spellSlot == Utils:StringToSlot(slot) and menu.gapclosersettings[unit.charName .. "." .. slot]:get() then 
 								if spell.target and spell.target == mh then
 									mh.spellbook:CastSpell(2, D3DXVECTOR3(unit.x, unit.y, unit.z))	
 								elseif not spell.target then
@@ -1442,8 +1436,7 @@ function Syndra:OnProcessSpell(unit, spell)
 					local UnitInterruptSpells = chanellingspells[unit.charName]
 					if UnitInterruptSpells then
 						for _, slot in pairs(UnitInterruptSpells) do
-							local str = ("unit.charName" .. "." .. slot)
-							if spell.spellSlot == Utils:StringToSlot(slot) and menu.interruptsettings.str:get() then 
+							if spell.spellSlot == Utils:StringToSlot(slot) and menu.interruptsettings[unit.charName .. "." .. slot]:get() then 
 								mh.spellbook:CastSpell(2, D3DXVECTOR3(unit.x, unit.y, unit.z))	
 							end
 						end
@@ -1817,8 +1810,7 @@ function Lux:OnProcessSpell(unit, spell)
 					local UnitGapcloserSpells = gapcloserspells[unit.charName]
 					if UnitGapcloserSpells then
 						for _, slot in pairs(UnitGapcloserSpells) do
-							local str = ("unit.charName" .. "." .. slot)
-							if spell.spellSlot == Utils:StringToSlot(slot) and menu.gapclosersettings.str:get() then 
+							if spell.spellSlot == Utils:StringToSlot(slot) and menu.gapclosersettings[unit.charName .. "." .. slot]:get() then 
 								if spell.target and spell.target == mh then
 									self:CastQ(unit)
 								elseif not spell.target then
@@ -1883,7 +1875,6 @@ function Fizz:Menu()
 end
 
 function Fizz:Init()
-	self.passive = false
 	self.target, self.tsrange = nil, 650
 	self.I = {
 		slot = mh.spellbook:Spell(4).name:find("SummonerDot") and 4 or mh.spellbook:Spell(5).name:find("SummonerDot") and 5 or nil,
@@ -2076,6 +2067,7 @@ function Morgana:Menu()
 	menu = Menu("MasterSeries", "MasterSeries-Morgana")
 	menu:sub("combosettings", "Combo Settings")
 	menu:sub("harasssettings", "Harass Settings")
+	menu:sub("shieldsettings", "Auto Shield Settings")
 	menu:sub("clearsettings", "Clear Settings")
 	menu:sub("killstealsettings", "KillSteal Settings")
 	menu:sub("ultsettings", "Ultimate Black List")
@@ -2093,6 +2085,18 @@ function Morgana:Menu()
 	menu.harasssettings:checkbox("useq", "Use (Q)", true)
 	menu.harasssettings:checkbox("usew", "Use (W)", true)
 	menu.harasssettings:key("harasskey", "Harass Key:", 67)
+	------------
+	menu.shieldsettings:sub("shieldspells", "Spells To Shield:")
+	for i = 1, #Enemies do
+        local enemy = Enemies[i]
+		local UnitShieldSpells = self.shieldspells[enemy.charName]
+		if UnitShieldSpells then
+			for i, slot in pairs(UnitShieldSpells) do
+				menu.shieldsettings.shieldspells:checkbox(enemy.charName.."."..slot, "Auto Shield "..enemy.charName.." "..slot, true)
+			end
+		end
+	end
+	menu.shieldsettings:checkbox("enable", "Enable Auto Shield", true)
 	------------
 	menu.clearsettings:checkbox("useq", "Use (Q)", true)
 	menu.clearsettings:checkbox("usew", "Use (W)", true)
@@ -2141,6 +2145,74 @@ function Morgana:Menu()
 end
 
 function Morgana:Init()
+	self.shieldspells = {
+		["Aatrox"] = {"Q", "E"},
+		["Aatrox"] = {"Q"},
+		["Ahri"] = {"E"},
+		["Alistar"] = {"Q", "W"},
+		["Amumu"] = {"Q", "R"},
+		["Anivia"] = {"Q"},
+		["Blitzcrank"] = {"Q", "R"},
+		["Braum"] = {"R"},
+		["Cassiopeia"] = {"R"},
+		["Chogath"] = {"Q"},
+		["Darius"] = {"E"},
+		["Diana"] = {"E"},
+		["Draven"] = {"E"},
+		["Elise"] = {"E"},
+		["Evelynn"] = {"W"},
+		["Fiddlesticks"] = {"W"},
+		["Galio"] = {"E"},
+		["Garen"] = {"Q"},
+		["Gragas"] = {"E"},
+		["Hecarim"] = {"R"},
+		["Jax"] = {"E"},
+		["Jayce"] = {"E"},
+		["Kayle"] = {"Q"},
+		["LeBlanc"] = {"E"},
+		["LeeSin"] = {"R"},
+		["Leona"] = {"Q", "E", "R"},
+		["Lissandra"] = {"R"},
+		["Lux"] = {"Q"},
+		["Malphite"] = {"Q", "R"},
+		["Malzahar"] = {"R"},
+		["Morgana"] = {"Q"},
+		["Nami"] = {"Q"},
+		["Nasus"] = {"W"},
+		["Nautilus"] = {"R"},
+		["Nunu"] = {"E", "R"},
+		["Orianna"] = {"R"},
+		["Pantheon"] = {"W"},
+		["Poppy"] = {"E", "R"},
+		["Rammus"] = {"E"},
+		["Renekton"] = {"W"},
+		["Rengar"] = {"E"},
+		["Riven"] = {"W"},
+		["Rumble"] = {"R"},
+		["Ryze"] = {"W"},
+		["Sejuani"] = {"Q", "R"},
+		["Shaco"] = {"E"},
+		["Shen"] = {"E"},
+		["Shyvana"] = {"R"},
+		["Skarner"] = {"R"},
+		["Sona"] = {"R"},
+		["Syndra"] = {"E"},
+		["Taric"] = {"E"},
+		["Thresh"] = {"Q", "E"},
+		["Tristana"] = {"R"},
+		["Varus"] = {"R"},
+		["Vayne"] = {"E"},
+		["Veigar"] = {"E"},
+		["Velkoz"] = {"E"},
+		["Vi"] = {"Q", "R"},
+		["Volibear"] = {"Q", "E"},
+		["Warwick"] = {"R"},
+		["MonkeyKing"] = {"R"},
+		["Xerath"] = {"E"},
+		["Yasuo"] = {"Q", "R"},
+		["Zac"] = {"E", "R"},
+		["Zyra"] = {"E"},
+	}
 	self.target, self.tsrange = nil, 650
 	self.I = {
 		slot = mh.spellbook:Spell(4).name:find("SummonerDot") and 4 or mh.spellbook:Spell(5).name:find("SummonerDot") and 5 or nil,
@@ -2211,12 +2283,11 @@ function Morgana:OnProcessSpell(unit, spell)
 	if menu.gapclosersettings.enable:get() then
 		if unit and unit.team ~= mh.team and unit.type == mh.type and spell then
 			if Utils:ValidTarget(unit, self.Q.range) then
-				if self.passive and self.Q.ready() then
+				if self.Q.ready() then
 					local UnitGapcloserSpells = gapcloserspells[unit.charName]
 					if UnitGapcloserSpells then
 						for _, slot in pairs(UnitGapcloserSpells) do
-							local str = ("unit.charName" .. "." .. slot)
-							if spell.spellSlot == Utils:StringToSlot(slot) and menu.gapclosersettings.str:get() then 
+							if spell.spellSlot == Utils:StringToSlot(slot) and menu.gapclosersettings[unit.charName .. "." .. slot]:get() then 
 								if spell.target and spell.target == mh then
 									self:CastQ(unit)
 								elseif not spell.target then
@@ -2236,13 +2307,32 @@ function Morgana:OnProcessSpell(unit, spell)
 	if menu.interruptsettings.enable:get() then
 		if unit and unit.team ~= mh.team and unit.type == mh.type and spell then
 			if Utils:ValidTarget(unit, self.Q.range) then
-				if self.passive and self.Q.ready() then
+				if self.Q.ready() then
 					local UnitInterruptSpells = chanellingspells[unit.charName]
 					if UnitInterruptSpells then
 						for _, slot in pairs(UnitInterruptSpells) do
-							local str = ("unit.charName" .. "." .. slot)
-							if spell.spellSlot == Utils:StringToSlot(slot) and menu.interruptsettings.str:get() then 
+							if spell.spellSlot == Utils:StringToSlot(slot) and menu.interruptsettings[unit.charName .. "." .. slot]:get() then 
 								self:CastQ(unit)
+							end
+						end
+					end
+				end
+			end
+		end
+    end
+	if menu.shieldsettings.enable:get() then
+		if unit and unit.team ~= mh.team and unit.type == mh.type and spell then
+			if Utils:ValidTarget(unit) and self.E.ready() then
+				local UnitShieldSpells = self.shieldspells[unit.charName]
+				if UnitShieldSpells then
+					for _, slot in pairs(UnitShieldSpells) do
+						if spell.spellSlot == Utils:StringToSlot(slot) and menu.shieldsettings.shieldspells[unit.charName .. "." .. slot]:get() then 
+							if spell.target and spell.target == mh then
+								self:CastE(mh)
+							else
+								if Utils:GetDistance(mh, spell.endPos) <= 65 then
+									self:CastE(mh)
+								end
 							end
 						end
 					end
